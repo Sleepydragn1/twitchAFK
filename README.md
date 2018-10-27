@@ -60,7 +60,13 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 
 **Q:** I'm running into Captchas, please help?
 
-**A:** Stop running the script so often, you degenerate. Otherwise, you can uncomment the "Debug function for logging in manually" section in twitchAFK.js to give you 100 seconds to log in manually and solve the Captcha yourself.
+**A:** Stop running the script so often, you degenerate. Otherwise, you can uncomment the "Debug function for logging in manually" section in twitchAFK.js to give you 100 seconds to log in manually and solve the Captcha yourself. I won't make this an official configuration option because you really shouldn't be running into this in the first place.
+
+---
+
+**Q:** Is refreshing the page, pausing and resuming the stream, or spamming the chat really neccessary to get drops?
+
+**A:** No idea, since Twitch doesn't really make it clear. Regardless, I'm not taking any chances.
 
 ---
 
