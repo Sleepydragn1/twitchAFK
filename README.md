@@ -28,15 +28,15 @@ You may or may not need to specify SlimerJS's location depending on how you've i
 
 For example:
 
-slimerjs twitchAFK.js rainbow6
+*slimerjs twitchAFK.js rainbow6*
 
 or
 
-slimerjs twitchAFK.js
+*slimerjs twitchAFK.js*
 
 or
 
-"C:\Tools\SlimerJS\slimerjs.bat" twitchAFK.js rainbow6
+*"C:\Tools\SlimerJS\slimerjs.bat" twitchAFK.js rainbow6*
 
 ## You're ready to go!
 
