@@ -19,6 +19,9 @@ var defaultConfig = '/* Config */\n' +
 '// "360p"\n' +
 '// "160p"\n' +
 '// "MIN"\n\n' +
+'/* Application Resolution */\n' +
+'exports.width = 1280; // Width of the application window. Does not affect the stream resolution.\n' +
+'exports.height = 720; // Height of the application window. Does not affect the stream resolution.\n\n' +
 '/* Refresh Rate */\n' +
 'exports.minRefreshRate = 30; // Minimum rate of how often the page should be refreshed in minutes\n' +
 'exports.maxRefreshRate = 45; // Maximum rate of how often the page should be refreshed in minutes\n\n' +
@@ -76,9 +79,10 @@ var page = require("webpage").create();
 // Change user-agent to mask SlimerJS
 page.settings.userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0";
 
+// Set application resolution
 page.viewportSize = {
-    width: 1920,
-    height: 1080
+    width: config.width,
+    height: config.height
 };
 
 // Debug function for logging in manually

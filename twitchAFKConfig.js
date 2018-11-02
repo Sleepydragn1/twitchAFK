@@ -15,6 +15,10 @@ exports.maxQuality = "MIN"; // Maximum video quality setting to use
 // "160p"
 // "MIN"
 
+/* Application Resolution */
+exports.width = 1280; // Width of the application window. Does not affect the stream resolution.
+exports.height = 720; // Height of the application window. Does not affect the stream resolution.
+
 /* Refresh Rate */
 exports.minRefreshRate = 30; // Minimum rate of how often the page should be refreshed in minutes
 exports.maxRefreshRate = 45; // Maximum rate of how often the page should be refreshed in minutes
