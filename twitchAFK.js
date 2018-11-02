@@ -231,10 +231,13 @@ function openStream() {
 							}
 							
 							refreshing = false;
+							firstOpen = false;
 
 							pausePlay();
 							if (config.chatSpamEnabled) chatSpam();
 							refresh();
+							
+							
 						}, 15000);
 					}
 				}, 3500)
@@ -338,16 +341,7 @@ function chatSpam() {
 }
     
 function refresh() {
-	if (firstOpen) {
-		window.setTimeout(function() {
-			firstOpen = false;
-			
-			console.log("Refreshing stream!");
-			
-			openStream();
-			refresh();
-		}, 600000);
-	} else if (!spamming) {
+	if (!spamming) {
 		window.setTimeout(function() {
 			console.log("Refreshing stream!");
 			
