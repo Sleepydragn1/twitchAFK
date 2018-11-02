@@ -53,7 +53,7 @@ For example:
 
 Now you just need to set it up with a program for automatic scheduling.
 
-For those of you on Windows, this'll probably end up being Task Scheduler, and I've included a PowerShell script within the Windows directory to stop the script so you can schedule an end point for the script.
+For those of you on Windows, this'll probably end up being Task Scheduler, and I've included a PowerShell script within the Windows directory to stop the script so you can schedule an end point for the it.
 
 ## Q&A
 
