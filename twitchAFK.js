@@ -145,7 +145,7 @@ function twitchLogin(callback) {
 				}
 			}
         } else {
-            console.log("Shit, the Twitch homepage failed to load, retrying in 15s");
+            console.log("Shit, the Twitch homepage failed to load, retrying in 15s...");
             window.setTimeout(twitchLogin, 15000);
         }
     });
@@ -154,102 +154,109 @@ function twitchLogin(callback) {
 function openStream() {
     refreshing = true;
     
-    page.open(streamURL, function() {
-        page.switchToMainFrame();
-        
-		// Inject jQuery for maximum crutch
-		if (page.injectJs('jquery-3.3.1.min.js')) {
-			if (firstOpen) {
-				// Give the mature link a little time to load...
-				window.setTimeout(function() {
-					if (page.evaluate(function() {
-						if ($('#mature-link').is(":visible")) {
-							$('#mature-link').click();
-						}
-						return true;
-					})) {
-						waitFor(function() {
-							return page.evaluate(function() {
-								return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
-							});
-						}, function() {
-							// Mute the page, switch to theatre mode.
-							page.evaluate(function() {
-								$('.player-button.player-button--volume.qa-control-volume').click();
-								$('.player-button.qa-theatre-mode-button').click();
-							});
-							
-							// Check first to see if the quality options exist...
-							if (page.evaluate(function() {
-								$('.pl-settings-icon').click();
-								return $('.qa-quality-button').is(":visible");
-							})) {
-								page.evaluate(function(quality) {
-									// Open up the quality options
-									$('.qa-quality-button').click();
-									
-									var qualityButtons = $('.pl-quality-option-button');
-									
-									// I think this helps to keep the quality options box open.
-									// Who knows?
-									qualityButtons[0].focus();
-									
-									if (quality.includes("MAX") || quality.includes("SOURCE")) {
-										qualityButtons[1].click();
-									} else if (quality.includes("MIN")) {
-										qualityButtons[qualityButtons.length - 1].click();
-									} else if (quality.includes("AUTO")) { 
-										qualityButtons[0].click();
-									} else {			
-										// Get all of the available qualities, in string form
-										var qualities = [];
-										for (var i = 0; i < qualityButtons.length; i++) {
-											qualities.push(qualityButtons.children('span')[i].textContent.toUpperCase());
-										}
-										
-										// Look for matching qualities for maxQuality
-										var qualityMatches = [];
-										for (var k = 0; k < qualities.length; k++) {
-											if (qualities[k].includes(quality)) qualityMatches.push(k);
-										}
-										
-										if (qualityMatches.length > 1) {
-											// If we have more than one match (probably [quality] (Source) and [quality]), choose the second
-											qualityButtons[qualityMatches[1]].click();
-										} else if (qualityMatches.length === 1) {
-											// If we have a single match, that's the one we want
-											qualityButtons[qualityMatches[0]].click();
-										} else {
-											// If we have no matches, the quality isn't avaiable, and we only have LOWER qualities to choose from
-											// Let's choose the highest quality that isn't Auto
-											qualityButtons[1].click();
-										}
-									}
-								}, config.maxQuality.toUpperCase())
-							} else {
-								console.log("No quality options found. Perhaps the stream is offline?");
+    page.open(streamURL, function(status) {
+		if (status == "success") {
+			console.log("Stream opened.");
+			
+			page.switchToMainFrame();
+			
+			// Inject jQuery for maximum crutch
+			if (page.injectJs('jquery-3.3.1.min.js')) {
+				if (firstOpen) {
+					// Give the mature link a little time to load...
+					window.setTimeout(function() {
+						if (page.evaluate(function() {
+							if ($('#mature-link').is(":visible")) {
+								$('#mature-link').click();
 							}
-							
-							refreshing = false;
-							firstOpen = false;
+							return true;
+						})) {
+							waitFor(function() {
+								return page.evaluate(function() {
+									return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
+								});
+							}, function() {
+								// Mute the page, switch to theatre mode.
+								page.evaluate(function() {
+									$('.player-button.player-button--volume.qa-control-volume').click();
+									$('.player-button.qa-theatre-mode-button').click();
+								});
+								
+								// Check first to see if the quality options exist...
+								if (page.evaluate(function() {
+									$('.pl-settings-icon').click();
+									return $('.qa-quality-button').is(":visible");
+								})) {
+									page.evaluate(function(quality) {
+										// Open up the quality options
+										$('.qa-quality-button').click();
+										
+										var qualityButtons = $('.pl-quality-option-button');
+										
+										// I think this helps to keep the quality options box open.
+										// Who knows?
+										qualityButtons[0].focus();
+										
+										if (quality.includes("MAX") || quality.includes("SOURCE")) {
+											qualityButtons[1].click();
+										} else if (quality.includes("MIN")) {
+											qualityButtons[qualityButtons.length - 1].click();
+										} else if (quality.includes("AUTO")) { 
+											qualityButtons[0].click();
+										} else {			
+											// Get all of the available qualities, in string form
+											var qualities = [];
+											for (var i = 0; i < qualityButtons.length; i++) {
+												qualities.push(qualityButtons.children('span')[i].textContent.toUpperCase());
+											}
+											
+											// Look for matching qualities for maxQuality
+											var qualityMatches = [];
+											for (var k = 0; k < qualities.length; k++) {
+												if (qualities[k].includes(quality)) qualityMatches.push(k);
+											}
+											
+											if (qualityMatches.length > 1) {
+												// If we have more than one match (probably [quality] (Source) and [quality]), choose the second
+												qualityButtons[qualityMatches[1]].click();
+											} else if (qualityMatches.length === 1) {
+												// If we have a single match, that's the one we want
+												qualityButtons[qualityMatches[0]].click();
+											} else {
+												// If we have no matches, the quality isn't avaiable, and we only have LOWER qualities to choose from
+												// Let's choose the highest quality that isn't Auto
+												qualityButtons[1].click();
+											}
+										}
+									}, config.maxQuality.toUpperCase())
+								} else {
+									console.log("No quality options found. Perhaps the stream is offline?");
+								}
+								
+								refreshing = false;
+								firstOpen = false;
 
-							pausePlay();
-							if (config.chatSpamEnabled) chatSpam();
-							refresh();
-							
-							
-						}, 15000);
-					}
-				}, 3500)
-			} else {
-				page.evaluate(function() {
-					$('.player-button.qa-theatre-mode-button').click();
-				});
+								pausePlay();
+								if (config.chatSpamEnabled) chatSpam();
+								refresh();
+								
+								
+							}, 15000);
+						}
+					}, 3500)
+				} else {
+					page.evaluate(function() {
+						$('.player-button.qa-theatre-mode-button').click();
+					});
 
-				refreshing = false;
+					refreshing = false;
 
-				console.log("Stream refreshed!");
+					console.log("Stream refreshed!");
+				}
 			}
+		} else {
+			console.log("Shit, the stream failed to load, retrying in 15s...");
+            window.setTimeout(openStream, 15000);
 		}
     });
 }
@@ -370,7 +377,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                     phantom.exit(1);
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
-                    console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
+                    // console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
                     typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
                     clearInterval(interval); //< Stop this interval
                 }
