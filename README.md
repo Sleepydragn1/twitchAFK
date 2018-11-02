@@ -14,13 +14,14 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 
 6. [Configure SlimerJS's variables to point to your new Firefox installation.](https://docs.slimerjs.org/current/installation.html#configuring-slimerjs)
 7. Configure the twitchAFKConfig.js file and ensure you've set your Twitch username and password correctly.
+8. **\[Optional]** Run *slimerjs -CreateProfile twitchAFK* if you're planning on using profile support.
 
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
 
 ## Command-line Syntax
 The command to use the script is:
 
-slimerjs twitchAFK.js \[Twitch channel]
+*slimerjs twitchAFK.js \[Twitch channel]*
 
 The Twitch channel argument is *optional*, and if not specified, the script will use the channel option from the configuration file.
 
@@ -37,6 +38,16 @@ or
 or
 
 *"C:\Tools\SlimerJS\slimerjs.bat" twitchAFK.js rainbow6*
+
+## Profiles
+
+Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and can potentially avoid problems with Twitch's captchas.
+
+Run *slimerjs -CreateProfile twitchAFK* to create a profile, and then append *-P twitchAFK* to any slimerJS command to use that profile.
+
+For example:
+
+*slimerjs -P twitchAFK twitchAFK.js rainbow6*
 
 ## You're ready to go!
 
@@ -60,7 +71,9 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 
 **Q:** I'm running into Captchas, please help?
 
-**A:** Stop running the script so often, you degenerate. Otherwise, you can uncomment the "Debug function for logging in manually" section in twitchAFK.js to give you 100 seconds to log in manually and solve the Captcha yourself. I won't make this an official configuration option because you really shouldn't be running into this in the first place.
+**A:** Stop running the script so often, you degenerate, or start using the profile system.
+
+Otherwise, you can uncomment the "Debug function for logging in manually" section in twitchAFK.js and comment out the next line to give you 100 seconds to log in manually and solve the Captcha yourself. I won't make this an official configuration option because you really shouldn't be running into this in the first place.
 
 ---
 
