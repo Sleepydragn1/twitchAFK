@@ -6,6 +6,19 @@ var spamming = false;
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfig = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n\n' +
+'/* Video Quality */\n' +
+'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
+'// Possible Values:\n' +
+'// "MAX" or "SOURCE"\n' +
+'// "AUTO"\n' +
+'// "1080p60"\n' +
+'// "1080p"\n' +
+'// "720p60"\n' +
+'// "720p"\n' +
+'// "480p"\n' +
+'// "360p"\n' +
+'// "160p"\n' +
+'// "MIN"\n\n' +
 '/* Refresh Rate */\n' +
 'exports.minRefreshRate = 30; // Minimum rate of how often the page should be refreshed in minutes\n' +
 'exports.maxRefreshRate = 45; // Maximum rate of how often the page should be refreshed in minutes\n\n' +
@@ -14,9 +27,9 @@ var defaultConfig = '/* Config */\n' +
 'exports.maxPauseRate = 7; // Maximum rate of how often to pause the stream in minutes\n\n' +
 '/* Chat */\n' +
 '// Have some respect for your fellow chat members, please do not set the rate below 2 minutes.\n' +
+'exports.chatSpamEnabled = true; // To chat spam, or not to chat spam? true for enabled, false for disabled.\n' +
 'exports.minChatSpamRate = 3; // Minimum rate of how often to spam chat with a randomized message in minutes\n' +
 'exports.maxChatSpamRate = 5;  // Maximum rate of how often to spam chat with a randomized message in minutes\n' +
-'exports.chatSpamEnabled = true; // To chat spam, or not to chat spam? true for enabled, false for disabled.\n' +
 'exports.chatSpams = [ // Array of randomized messages for chat spam - should be kept in quotes and seperated with a comma\n' +
 '	"LUL",\n' +
 '	"LUL LUL",\n' +
@@ -136,26 +149,75 @@ function openStream() {
 		// Inject jQuery for maximum crutch
 		if (page.injectJs('jquery-3.3.1.min.js')) {
 			if (firstOpen) {
-				page.evaluate(function() {
-					if($('#mature-link').is(":visible")) $('#mature-link').click();
-				});
+				
+				// Give the mature link a little time to load...
+				window.setTimeout(function() {
+					if (page.evaluate(function() {
+						if ($('#mature-link').is(":visible")) {
+							$('#mature-link').click();
+						}
+						return true;
+					})) {
+						waitFor(function() {
+							return page.evaluate(function() {
+								return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
+							});
+						}, function() {
+							page.evaluate(function(quality) {
+								$('.player-button.player-button--volume.qa-control-volume').click();
+								$('.player-button.qa-theatre-mode-button').click();
+								
+								// Open up the quality options
+								$('.pl-settings-icon').focus();
+								$('.pl-settings-icon').click();
+								$('.qa-quality-button').focus();
+								$('.qa-quality-button').click();
+								
+								var qualityButtons = $('.pl-quality-option-button');
+								
+								qualityButtons[0].focus();
+								
+								if (quality.includes("MAX") || quality.includes("SOURCE")) {
+									qualityButtons[1].click();
+								} else if (quality.includes("MIN")) {
+									qualityButtons[qualityButtons.length - 1].click();
+								} else if (quality.includes("AUTO")) { 
+									qualityButtons[0].click();
+								} else {			
+									// Get all of the available qualities, in string form
+									var qualities = [];
+									for (var i = 0; i < qualityButtons.length; i++) {
+										qualities.push(qualityButtons.children('span')[i].textContent.toUpperCase());
+									}
+									
+									// Look for matching qualities for maxQuality
+									var qualityMatches = [];
+									for (var k = 0; k < qualities.length; k++) {
+										if (qualities[k].includes(quality)) qualityMatches.push(k);
+									}
+									
+									if (qualityMatches.length > 1) {
+										// If we have more than one match (probably [quality] (Source) and [quality]), choose the second
+										qualityButtons[qualityMatches[1]].click();
+									} else if (qualityMatches.length === 1) {
+										// If we have a single match, that's the one we want
+										qualityButtons[qualityMatches[0]].click();
+									} else {
+										// If we have no matches, the quality isn't avaiable, and we only have LOWER qualities to choose from
+										// Let's choose the highest quality that isn't Auto
+										qualityButtons[1].click();
+									}
+								}
+							}, config.maxQuality.toUpperCase());
+							
+							refreshing = false;
 
-				waitFor(function() {
-					return page.evaluate(function() {
-						return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
-					});
-				}, function() {
-					page.evaluate(function() {
-						$('.player-button.player-button--volume.qa-control-volume').click();
-						$('.player-button.qa-theatre-mode-button').click();
-					});
-					
-					refreshing = false;
-
-					pausePlay();
-					if (config.chatSpamEnabled) chatSpam();
-					refresh();
-				}, 15000);
+							pausePlay();
+							if (config.chatSpamEnabled) chatSpam();
+							refresh();
+						}, 15000);
+					}
+				}, 3500)
 			} else {
 				page.evaluate(function() {
 					$('.player-button.qa-theatre-mode-button').click();
@@ -227,7 +289,6 @@ function chatSpam() {
 						key = spam[i];
 						pressRate = randomRate(0.00075, 0.00166667);
 						if (i < spam.length) {
-							console.log("GOIN AGAIN");
 							press();
 						} else {
 							// Send it.
