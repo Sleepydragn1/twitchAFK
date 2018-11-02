@@ -96,6 +96,8 @@ twitchLogin(openStream);
 function twitchLogin(callback) {
     page.open("https://www.twitch.tv", function(status) {
         if (status == "success") {
+			mutePage();
+			
 			// Is the user already logged in via slimer's profile system? If so, skip past the login.
 			if (page.cookies.filter(cookie => cookie.name.includes("login")).length) {
 				console.log("You're already logged in to Twitch. Good on you.");
@@ -135,13 +137,20 @@ function twitchLogin(callback) {
 								page.evaluate(function() {
 									$('[data-a-target=passport-login-button]').click();
 								});
+								
+								// Wait for Twitch to finish logging in...
+								waitFor(function() {
+									return page.cookies.filter(cookie => cookie.name.includes("login")).length;
+								}, function() {
+									// Give it a little extra time, just in case the cookie isn't quite in line with the login
+									window.setTimeout(function() {
+										console.log("Logged into Twitch!");
+										callback();
+									}, 1000);
+								}, 60000);
 							}
 						}, 15000);
 					}, 5000);
-					window.setTimeout(function() {
-						console.log("Logged into Twitch!");
-						callback();
-					}, 20000);
 				}
 			}
         } else {
@@ -176,9 +185,12 @@ function openStream() {
 									return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
 								});
 							}, function() {
-								// Mute the page, switch to theatre mode.
 								page.evaluate(function() {
-									$('.player-button.player-button--volume.qa-control-volume').click();
+									// Check if stream is unmuted, mute if it is
+									if ($('.player-button.player-button--volume.qa-control-volume').children('.mute-button').length) {
+										$('.player-button.player-button--volume.qa-control-volume').click();
+									}
+									// Switch to theatre mode
 									$('.player-button.qa-theatre-mode-button').click();
 								});
 								
@@ -384,6 +396,13 @@ function waitFor(testFx, onReady, timeOutMillis) {
             }
         }, 250); //< repeat check every 250ms
 };
+
+// Mute any video on the page.
+function mutePage() {
+	page.evaluate(function() {
+		document.querySelectorAll('video').forEach(video => video.muted = true);
+	});
+}
 
 // Used for debug purposes
 function screenshot() {
