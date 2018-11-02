@@ -90,48 +90,55 @@ window.setTimeout(function() {
 twitchLogin(openStream);
 
 function twitchLogin(callback) {
-    console.log("Logging into Twitch...");
-    
     page.open("https://www.twitch.tv", function(status) {
         if (status == "success") {
-			// Inject jQuery for maximum crutch
-			// Undocumented behavior: injectJs returns true if it's successful, like the original phantomJs specification
-			if (page.injectJs('jquery-3.3.1.min.js')) {
-				page.evaluate(function() {
-					$('.tw-mg-r-1').find('.tw-button')[0].click();
-				});
-				window.setTimeout(function() {
-					//page.switchToFrame('passport');
-					
-					waitFor(function() {
-						return page.evaluate(function() {
-							return $('[autocomplete=username]').is(":visible");
-						});
-					}, function() {
-						if (page.evaluate(function() {
-							$('[autocomplete=username]').click();
-							$('[autocomplete=username]').focus();
-							return true;
-						})) {
-							page.sendEvent('keypress', config.username);
-						}
+			// Is the user already logged in via slimer's profile system? If so, skip past the login.
+			if (page.cookies.filter(cookie => cookie.name.includes("login")).length) {
+				console.log("You're already logged in to Twitch. Good on you.");
+				
+				callback();
+			} else {
+				console.log("Logging into Twitch...");
+				
+				// Inject jQuery for maximum crutch
+				// Undocumented behavior: injectJs returns true if it's successful, like the original phantomJs specification
+				if (page.injectJs('jquery-3.3.1.min.js')) {
+					page.evaluate(function() {
+						$('.tw-mg-r-1').find('.tw-button')[0].click();
+					});
+					window.setTimeout(function() {
+						//page.switchToFrame('passport');
 						
-						if (page.evaluate(function() {
-							$('[autocomplete=current-password]').click();
-							$('[autocomplete=current-password]').focus();
-							return true;
-						})) {
-							page.sendEvent('keypress', config.password);
-							page.evaluate(function() {
-								$('[data-a-target=passport-login-button]').click();
+						waitFor(function() {
+							return page.evaluate(function() {
+								return $('[autocomplete=username]').is(":visible");
 							});
-						}
-					}, 15000);
-				}, 5000);
-				window.setTimeout(function() {
-					console.log("Logged into Twitch!");
-					callback();
-				}, 20000);
+						}, function() {
+							if (page.evaluate(function() {
+								$('[autocomplete=username]').click();
+								$('[autocomplete=username]').focus();
+								return true;
+							})) {
+								page.sendEvent('keypress', config.username);
+							}
+							
+							if (page.evaluate(function() {
+								$('[autocomplete=current-password]').click();
+								$('[autocomplete=current-password]').focus();
+								return true;
+							})) {
+								page.sendEvent('keypress', config.password);
+								page.evaluate(function() {
+									$('[data-a-target=passport-login-button]').click();
+								});
+							}
+						}, 15000);
+					}, 5000);
+					window.setTimeout(function() {
+						console.log("Logged into Twitch!");
+						callback();
+					}, 20000);
+				}
 			}
         } else {
             console.log("Shit, the Twitch homepage failed to load, retrying in 15s");
