@@ -51,7 +51,9 @@ var defaultConfig = '/* Config */\n' +
 'exports.username = "AzureDiamond"; // Twitch username\n' +
 'exports.password = "hunter2"; // Twitch password\n\n' +
 '/* Debug */\n' +
-'exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true';
+'exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true\n' +
+'exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.\n' +
+'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line.';
 
 // Get config
 var config;
@@ -90,16 +92,44 @@ page.viewportSize = {
 // Handle in-page JavaScript errors
 page.onError = function(msg, stack) {
 	if (config.printJSErrors) {
-		var log = "In-page JavaScript error occured - " + msg + "\n";
-		if (stack.length) {
-			log += "STACK TRACE: ";
-			stack.forEach(function(s) {
+		var log = "In-page JavaScript error occured:\n" + msg;
+		if (config.printJSErrorsStack && stack.length) {
+			log += "\n	Stack:";
+			
+			var stackPrint = function(s) {
 				// Shamelessly stolen from: http://phantomjs.org/api/webpage/handler/on-error.html
-				log += "-> " + s.file + ": " + s.line;
+				var stackMsg = "-> " + s.file + ": " + s.line;
 				if (s.function) {
-					log += " (in function '" + s.function + "')";
+					stackMsg += " (in function '" + s.function + "')";
 				}
-			});
+				
+				// Split long (80+ character) stacks into multiple lines.
+				// Otherwise it becomes impossible to read.
+				var lines = Math.ceil(stackMsg.length / 80);
+				
+				if (lines > 1) {
+					var stackMsgTabbed = "";
+					
+					for (var i = 0; i < lines - 1; i++) {
+						stackMsgTabbed += "\n		" + stackMsg.slice(80 * i, 81 + (80 * i));
+					}
+					stackMsgTabbed += "\n		" + stackMsg.slice(80 * (lines - 1));
+					
+					log += stackMsgTabbed;
+				} else {
+					log += "\n		" + stackMsg;
+				}
+			}
+			
+			// If verbose, print the entire stack.
+			// If not, print only the last line.
+			if (!config.printJSErrorsStackVerbose) {
+				stackPrint(stack[stack.length - 1]);
+			} else {
+				stack.forEach(function(s) {
+					stackPrint(s);
+				});
+			}
 		}
 		console.log(log);
 	}

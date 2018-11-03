@@ -53,3 +53,5 @@ exports.password = "hunter2"; // Twitch password
 
 /* Debug */
 exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true
+exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.
+exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line.
