@@ -214,12 +214,46 @@ function openStream() {
 									$('.player-button.qa-theatre-mode-button').click();
 								});
 								
+								// Check for chat rules, accept them if they exist.
+								// Executed after quality setting, to avoid interfering with it.
+								var acceptChatRules = function() {
+									if (page.evaluate(function() {
+										var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
+
+										chatInput.focus();
+										chatInput.click();
+										
+										return true;
+									})) {
+										page.sendEvent('keypress', " ");
+										
+										if (page.evaluate(function() {
+											if ($('.chat-rules')) return true;
+										})) {
+											if (page.evaluate(function() {
+												$('.chat-rules').find('.tw-button').click();
+												
+												var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
+												
+												chatInput.focus();
+												chatInput.click();
+												
+												return true;
+											})) {
+												page.sendEvent('keypress', page.event.key.Backspace);
+											}
+										} else {
+											page.sendEvent('keypress', page.event.key.Backspace);
+										}
+									}
+								};
+								
 								// Check first to see if the quality options exist...
 								if (page.evaluate(function() {
 									$('.pl-settings-icon').click();
 									return $('.qa-quality-button').is(":visible");
 								})) {
-									page.evaluate(function(quality) {
+									if (page.evaluate(function(quality) {
 										// Open up the quality options
 										$('.qa-quality-button').click();
 										
@@ -260,9 +294,14 @@ function openStream() {
 												qualityButtons[1].click();
 											}
 										}
-									}, config.maxQuality.toUpperCase())
+										
+										return true;
+									}, config.maxQuality.toUpperCase())) {
+										acceptChatRules();
+									}
 								} else {
 									console.log("No quality options found. Perhaps the stream is offline?");
+									acceptChatRules();
 								}
 								
 								refreshing = false;
@@ -271,8 +310,6 @@ function openStream() {
 								pausePlay();
 								if (config.chatSpamEnabled) chatSpam();
 								refresh();
-								
-								
 							}, 15000);
 						}
 					}, 3500)
