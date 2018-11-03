@@ -308,7 +308,17 @@ function openStream() {
 								firstOpen = false;
 
 								pausePlay();
-								if (config.chatSpamEnabled) chatSpam();
+								if (config.chatSpamEnabled) {
+									// Check if the chat is disabled, most likely due to subscribers-only mode
+									if (page.evaluate(function() {
+										return !$('[data-a-target="chat-send-button"]').is(":disabled");
+									})) {
+										console.log("KEK");
+										chatSpam();
+									} else {
+										console.log("YEY");
+									}
+								}
 								refresh();
 							}, 15000);
 						}
