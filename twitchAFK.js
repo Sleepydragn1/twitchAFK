@@ -308,17 +308,7 @@ function openStream() {
 								firstOpen = false;
 
 								pausePlay();
-								if (config.chatSpamEnabled) {
-									// Check if the chat is disabled, most likely due to subscribers-only mode
-									if (page.evaluate(function() {
-										return !$('[data-a-target="chat-send-button"]').is(":disabled");
-									})) {
-										console.log("KEK");
-										chatSpam();
-									} else {
-										console.log("YEY");
-									}
-								}
+								if (config.chatSpamEnabled) chatSpam();
 								refresh();
 							}, 15000);
 						}
@@ -377,52 +367,60 @@ function chatSpam() {
 		}
 		
 		window.setTimeout(function() {
-            spamming = true;
-			
-			var spam = config.chatSpams[Math.floor(Math.random() * config.chatSpams.length)];
-            
-            console.log("Chat spamming '" + spam + "'!");
-
+			// Check if the chat is disabled, most likely due to subscribers-only mode
 			if (page.evaluate(function() {
-				var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
-
-				chatInput.focus();
-				chatInput.click();
-				
-				return true;
+				return !$('[data-a-target="chat-send-button"]').is(":disabled");
 			})) {
-				// Put randomized delay between the keystrokes to mask automation
-				var i = 0;
-				var key = spam[0];
-				var pressRate = randomRate(0.00075, 0.00166667);
-				var press = function() {
-					window.setTimeout(function() {
-						page.sendEvent('keypress', key);
-						
-						i++;
-						key = spam[i];
-						pressRate = randomRate(0.00075, 0.00166667);
-						if (i < spam.length) {
-							press();
-						} else {
-							// Send it.
-							if (page.evaluate(function() {
-								// Find dat chat send button
-								$('[data-a-target=chat-send-button]').focus();
-								return true;
-							})) {
-								// event.key.Enter doesn't seem to work at all. Very frustrating.
-								// event.key.Return creates a newline when focused on the chat input, for some reason, so we need to use the send button
-								page.sendEvent('keypress', page.event.key.Return);
-							}
-						}
-					}, pressRate);
-				};
+				spamming = true;
+			
+				var spam = config.chatSpams[Math.floor(Math.random() * config.chatSpams.length)];
 				
-				press();
+				console.log("Chat spamming '" + spam + "'!");
+
+				if (page.evaluate(function() {
+					var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
+
+					chatInput.focus();
+					chatInput.click();
+					
+					return true;
+				})) {
+					// Put randomized delay between the keystrokes to mask automation
+					var i = 0;
+					var key = spam[0];
+					var pressRate = randomRate(0.00075, 0.00166667);
+					var press = function() {
+						window.setTimeout(function() {
+							page.sendEvent('keypress', key);
+							
+							i++;
+							key = spam[i];
+							pressRate = randomRate(0.00075, 0.00166667);
+							if (i < spam.length) {
+								press();
+							} else {
+								// Send it.
+								if (page.evaluate(function() {
+									// Find dat chat send button
+									$('[data-a-target=chat-send-button]').focus();
+									return true;
+								})) {
+									// event.key.Enter doesn't seem to work at all. Very frustrating.
+									// event.key.Return creates a newline when focused on the chat input, for some reason, so we need to use the send button
+									page.sendEvent('keypress', page.event.key.Return);
+								}
+							}
+						}, pressRate);
+					};
+					
+					press();
+				}
+				
+				spamming = false;
+			} else {
+				console.log("Chat appears to be disabled, aborting a chat spam.");
 			}
 			
-			spamming = false;
 			chatSpam();
         }, rate);
     } else {
