@@ -1,3 +1,5 @@
+![Flashy banner, yo](banner.gif)
+
 # twitchAFK
 A SlimerJS script for idling a Twitch channel.
 
