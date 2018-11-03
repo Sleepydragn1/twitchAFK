@@ -50,3 +50,6 @@ exports.chatSpams = [ // Array of randomized messages for chat spam - should be 
 /* Credentials */
 exports.username = "AzureDiamond"; // Twitch username
 exports.password = "hunter2"; // Twitch password
+
+/* Debug */
+exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true

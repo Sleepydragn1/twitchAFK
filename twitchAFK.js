@@ -49,7 +49,9 @@ var defaultConfig = '/* Config */\n' +
 '];\n\n' +
 '/* Credentials */\n' +
 'exports.username = "AzureDiamond"; // Twitch username\n' +
-'exports.password = "hunter2"; // Twitch password';
+'exports.password = "hunter2"; // Twitch password\n\n' +
+'/* Debug */\n' +
+'exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true';
 
 // Get config
 var config;
@@ -83,6 +85,24 @@ page.settings.userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Ge
 page.viewportSize = {
     width: config.width,
     height: config.height
+};
+
+// Handle in-page JavaScript errors
+page.onError = function(msg, stack) {
+	if (config.printJSErrors) {
+		var log = "In-page JavaScript error occured - " + msg + "\n";
+		if (stack.length) {
+			log += "STACK TRACE: ";
+			stack.forEach(function(s) {
+				// Shamelessly stolen from: http://phantomjs.org/api/webpage/handler/on-error.html
+				log += "-> " + s.file + ": " + s.line;
+				if (s.function) {
+					log += " (in function '" + s.function + "')";
+				}
+			});
+		}
+		console.log(log);
+	}
 };
 
 // Debug function for logging in manually
@@ -278,14 +298,19 @@ function pausePlay() {
         window.setTimeout(function() {
             console.log("Pausing stream!");
             
-            page.evaluate(function() {
-                var button = $('.player-button.qa-pause-play-button');
-
-                button.click();
-                window.setTimeout(function() {
-                    button.click();
+            if (page.evaluate(function() {
+                $('.player-button.qa-pause-play-button').click();
+				return true;
+            })) {
+				window.setTimeout(function() {
+                    if (page.evaluate(function() {
+						$('.player-button.qa-pause-play-button').click();
+						return true;
+					})) {
+						console.log("Resuming stream.");
+					}
                 }, Math.floor(5000 + (Math.random() * 12000)));
-            });
+			}
             pausePlay();
         }, randomRate(config.minPauseRate, config.maxPauseRate));
     } else {
