@@ -16,9 +16,10 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 
 6. [Configure SlimerJS's variables to point to your new Firefox installation.](https://docs.slimerjs.org/current/installation.html#configuring-slimerjs)
 7. Configure the twitchAFKConfig.js file and ensure you've set your Twitch username and password correctly.
-8. **\[Optional]** Run *slimerjs -CreateProfile twitchAFK* if you're planning on using profile support.
 
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
+
+8. **\[Optional]** Run *slimerjs -CreateProfile twitchAFK* if you're planning on using profile support.
 
 ## Command-line Syntax
 The command to use the script is:
