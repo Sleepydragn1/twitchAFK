@@ -5,7 +5,8 @@ var spamming = false;
 
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfig = '/* Config */\n' +
-'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n\n' +
+'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
+'exports.recaptchaDetection = true; // Detect reCAPTCHAs and pause for user input\n\n' +
 '/* Video Quality */\n' +
 'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
 '// Possible Values:\n' +
@@ -160,12 +161,11 @@ function twitchLogin(callback) {
 				// Undocumented behavior: injectJs returns true if it's successful, like the original phantomJs specification
 				if (page.injectJs('jquery-3.3.1.min.js')) {
 					page.evaluate(function() {
-						$('.tw-mg-r-1').find('.tw-button')[0].click();
+						$("[data-a-target='login-button']")[0].click();
 					});
 					window.setTimeout(function() {
-						//page.switchToFrame('passport');
-						
 						waitFor(function() {
+							console.log("HOLA");
 							return page.evaluate(function() {
 								return $('[autocomplete=username]').is(":visible");
 							});
@@ -188,6 +188,20 @@ function twitchLogin(callback) {
 									$('[data-a-target=passport-login-button]').click();
 								});
 								
+								var loginTimeout = 60000;
+								
+								// Detect reCAPTCHA
+								if (config.recaptchaDetection) {
+									if (function() {
+										return page.evaluate(function() {
+											return $('.recaptcha-form__recaptcha').is(":visible");
+										});
+									}) {
+										console.log("reCAPTCHA detected. Waiting 10 minutes for user input...");
+										config.loginTimeout = 600000;
+									}
+								}
+								
 								// Wait for Twitch to finish logging in...
 								waitFor(function() {
 									return page.cookies.filter(cookie => cookie.name.includes("login")).length;
@@ -197,7 +211,7 @@ function twitchLogin(callback) {
 										console.log("Logged into Twitch!");
 										callback();
 									}, 1000);
-								}, 60000);
+								}, config.loginTimeout);
 							}
 						}, 15000);
 					}, 5000);
@@ -475,12 +489,12 @@ function refresh() {
 
 // Stolen from https://github.com/ariya/phantomjs/blob/master/examples/waitfor.js
 function waitFor(testFx, onReady, timeOutMillis) {
-    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000, //< Default Max Timout is 3s
+    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 44445, //< Default Max Timout is 3s
         start = new Date().getTime(),
         condition = false,
         interval = setInterval(function() {
-            if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
-                // If not time-out yet and condition not yet fulfilled
+			if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
+				// If not time-out yet and condition not yet fulfilled
                 condition = (typeof(testFx) === "string" ? eval(testFx) : testFx()); //< defensive code
             } else {
                 if(!condition) {
@@ -489,7 +503,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                     phantom.exit(1);
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
-                    // console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
+                    //console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
                     typeof(onReady) === "string" ? eval(onReady) : onReady(); //< Do what it's supposed to do once the condition is fulfilled
                     clearInterval(interval); //< Stop this interval
                 }

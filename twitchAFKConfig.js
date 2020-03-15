@@ -1,5 +1,6 @@
 /* Config */
 exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT
+exports.recaptchaDetection = true; // Detect reCAPTCHAs and pause for user input
 
 /* Video Quality */
 exports.maxQuality = "MIN"; // Maximum video quality setting to use
