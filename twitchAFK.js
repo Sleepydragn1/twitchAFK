@@ -167,7 +167,7 @@ function twitchLogin(callback) {
 						waitFor(function() {
 							console.log("HOLA");
 							return page.evaluate(function() {
-								return $('[autocomplete=username]').is(":visible");
+								return $('[autocomplete=username]').is(':visible');
 							});
 						}, function() {
 							if (page.evaluate(function() {
@@ -194,7 +194,7 @@ function twitchLogin(callback) {
 								if (config.recaptchaDetection) {
 									if (function() {
 										return page.evaluate(function() {
-											return $('.recaptcha-form__recaptcha').is(":visible");
+											return $('.recaptcha-form__recaptcha').is(':visible');
 										});
 									}) {
 										console.log("reCAPTCHA detected. Waiting 10 minutes for user input...");
@@ -239,69 +239,54 @@ function openStream() {
 					// Give the mature link a little time to load...
 					window.setTimeout(function() {
 						if (page.evaluate(function() {
-							if ($('#mature-link').is(":visible")) {
+							if ($('#mature-link').is(':visible')) {
 								$('#mature-link').click();
 							}
 							return true;
 						})) {
 							waitFor(function() {
 								return page.evaluate(function() {
-									return $('.player-button.player-button--volume.qa-control-volume').is(":visible");
+									return $('[data-a-target="player-mute-unmute-button"]').is(':visible');
 								});
 							}, function() {
 								page.evaluate(function() {
 									// Check if stream is unmuted, mute if it is
-									if ($('.player-button.player-button--volume.qa-control-volume').children('.mute-button').length) {
-										$('.player-button.player-button--volume.qa-control-volume').click();
+									if ($('[data-a-target="player-mute-unmute-button"]').attr('aria-label').includes("Mute")) {
+										$('[data-a-target="player-mute-unmute-button"]').click();
 									}
 									// Switch to theatre mode
-									$('.player-button.qa-theatre-mode-button').click();
+									$('[data-a-target="player-theatre-mode-button"]').click();
 								});
 								
 								// Check for chat rules, accept them if they exist.
 								// Executed after quality setting, to avoid interfering with it.
 								var acceptChatRules = function() {
-									if (page.evaluate(function() {
-										var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
+									page.evaluate(function() {
+										var chatInput = $('[data-a-target="chat-input"]');
 
 										chatInput.focus();
 										chatInput.click();
 										
-										return true;
-									})) {
-										page.sendEvent('keypress', " ");
-										
-										if (page.evaluate(function() {
-											if ($('.chat-rules')) return true;
-										})) {
-											if (page.evaluate(function() {
-												$('.chat-rules').find('.tw-button').click();
-												
-												var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
-												
-												chatInput.focus();
-												chatInput.click();
-												
-												return true;
-											})) {
-												page.sendEvent('keypress', page.event.key.Backspace);
+										window.setTimeout(function() {
+											if ($('[data-test-selector="chat-rules-ok-button"]').is(':visible')) {
+												$('[data-test-selector="chat-rules-ok-button"]').click();
 											}
-										} else {
-											page.sendEvent('keypress', page.event.key.Backspace);
-										}
-									}
+										}, 1000);
+									});
 								};
 								
 								// Check first to see if the quality options exist...
 								if (page.evaluate(function() {
-									$('.pl-settings-icon').click();
-									return $('.qa-quality-button').is(":visible");
+									$('[data-a-target="player-settings-button"]').click();
+									return $('[data-a-target="player-settings-menu-item-quality"]').is(':visible');
 								})) {
 									if (page.evaluate(function(quality) {
 										// Open up the quality options
-										$('.qa-quality-button').click();
+										$('[data-a-target="player-settings-menu-item-quality"]').click();
 										
-										var qualityButtons = $('.pl-quality-option-button');
+										var qualityButtons = $('.tw-radio[data-a-target="player-settings-submenu-quality-option"]').children('input');
+										
+										console.log(qualityButtons.length);
 										
 										// I think this helps to keep the quality options box open.
 										// Who knows?
@@ -317,15 +302,15 @@ function openStream() {
 											// Get all of the available qualities, in string form
 											var qualities = [];
 											for (var i = 0; i < qualityButtons.length; i++) {
-												qualities.push(qualityButtons.children('span')[i].textContent.toUpperCase());
+												qualities.push($('.tw-radio[data-a-target="player-settings-submenu-quality-option"]').children('label').children('div')[i].textContent.toUpperCase());
 											}
-											
+
 											// Look for matching qualities for maxQuality
 											var qualityMatches = [];
 											for (var k = 0; k < qualities.length; k++) {
 												if (qualities[k].includes(quality)) qualityMatches.push(k);
 											}
-											
+
 											if (qualityMatches.length > 1) {
 												// If we have more than one match (probably [quality] (Source) and [quality]), choose the second
 												qualityButtons[qualityMatches[1]].click();
@@ -359,7 +344,7 @@ function openStream() {
 					}, 3500)
 				} else {
 					page.evaluate(function() {
-						$('.player-button.qa-theatre-mode-button').click();
+						$('[data-a-target="player-theatre-mode-button"]').click();
 					});
 
 					refreshing = false;
@@ -380,12 +365,12 @@ function pausePlay() {
             console.log("Pausing stream!");
             
             if (page.evaluate(function() {
-                $('.player-button.qa-pause-play-button').click();
+				$('[data-a-target="player-play-pause-button"]').click();
 				return true;
             })) {
 				window.setTimeout(function() {
                     if (page.evaluate(function() {
-						$('.player-button.qa-pause-play-button').click();
+						$('[data-a-target="player-play-pause-button"]').click();
 						return true;
 					})) {
 						console.log("Resuming stream.");
@@ -422,7 +407,7 @@ function chatSpam() {
 				console.log("Chat spamming '" + spam + "'!");
 
 				if (page.evaluate(function() {
-					var chatInput = $('textarea.tw-textarea.tw-textarea--no-resize');
+					var chatInput = $('[data-a-target="chat-input"]');
 
 					chatInput.focus();
 					chatInput.click();
