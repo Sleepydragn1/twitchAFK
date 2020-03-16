@@ -53,6 +53,7 @@ exports.username = "AzureDiamond"; // Twitch username
 exports.password = "hunter2"; // Twitch password
 
 /* Debug */
-exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true
+exports.printJSMessages = false; // Output in-page console messages if true
+exports.printJSErrors = false; // Output in-page JavaScript errors if true
 exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.
-exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line.
+exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line. Requires printJSErrors and printJSErrorsStack to be enabled.

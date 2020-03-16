@@ -52,9 +52,10 @@ var defaultConfig = '/* Config */\n' +
 'exports.username = "AzureDiamond"; // Twitch username\n' +
 'exports.password = "hunter2"; // Twitch password\n\n' +
 '/* Debug */\n' +
-'exports.printJSErrors = false; // Output in-page JavaScript errors to the console if true\n' +
+'exports.printJSMessages = false; // Output in-page console messages if true\n' +
+'exports.printJSErrors = false; // Output in-page JavaScript errors if true\n' +
 'exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.\n' +
-'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line.';
+'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line. Requires printJSErrors and printJSErrorsStack to be enabled.';
 
 // Get config
 var config;
@@ -90,38 +91,45 @@ page.viewportSize = {
     height: config.height
 };
 
+// Handle in-page console messages
+if (config.printJSConsole) {
+	page.onConsoleMessage = function(msg) {
+		system.stderr.writeLine('Console: ' + msg);
+	};
+}
+
 // Handle in-page JavaScript errors
-page.onError = function(msg, stack) {
-	if (config.printJSErrors) {
+if (config.printJSErrors) {
+	page.onError = function(msg, stack) {
 		var log = "In-page JavaScript error occured:\n" + msg;
 		if (config.printJSErrorsStack && stack.length) {
 			log += "\n	Stack:";
-			
+
 			var stackPrint = function(s) {
 				// Shamelessly stolen from: http://phantomjs.org/api/webpage/handler/on-error.html
 				var stackMsg = "-> " + s.file + ": " + s.line;
 				if (s.function) {
 					stackMsg += " (in function '" + s.function + "')";
 				}
-				
+
 				// Split long (80+ character) stacks into multiple lines.
 				// Otherwise it becomes impossible to read.
 				var lines = Math.ceil(stackMsg.length / 80);
-				
+
 				if (lines > 1) {
 					var stackMsgTabbed = "";
-					
+
 					for (var i = 0; i < lines - 1; i++) {
 						stackMsgTabbed += "\n		" + stackMsg.slice(80 * i, 81 + (80 * i));
 					}
 					stackMsgTabbed += "\n		" + stackMsg.slice(80 * (lines - 1));
-					
+
 					log += stackMsgTabbed;
 				} else {
 					log += "\n		" + stackMsg;
 				}
 			}
-			
+
 			// If verbose, print the entire stack.
 			// If not, print only the last line.
 			if (!config.printJSErrorsStackVerbose) {
@@ -133,8 +141,8 @@ page.onError = function(msg, stack) {
 			}
 		}
 		console.log(log);
-	}
-};
+	};
+}
 
 // Debug function for logging in manually
 /*page.open("https://www.twitch.tv", function(status) { });
@@ -289,8 +297,6 @@ function openStream() {
 										$('[data-a-target="player-settings-menu-item-quality"]').click();
 										
 										var qualityButtons = $('.tw-radio[data-a-target="player-settings-submenu-quality-option"]').children('input');
-										
-										console.log(qualityButtons.length);
 										
 										// I think this helps to keep the quality options box open.
 										// Who knows?
