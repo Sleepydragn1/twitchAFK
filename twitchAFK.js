@@ -6,7 +6,7 @@ var spamming = false;
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfig = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
-'exports.recaptchaDetection = true; // Detect reCAPTCHAs and pause for user input\n\n' +
+'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input\n\n' +
 '/* Video Quality */\n' +
 'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
 '// Possible Values:\n' +
@@ -165,7 +165,6 @@ function twitchLogin(callback) {
 					});
 					window.setTimeout(function() {
 						waitFor(function() {
-							console.log("HOLA");
 							return page.evaluate(function() {
 								return $('[autocomplete=username]').is(':visible');
 							});
@@ -190,14 +189,14 @@ function twitchLogin(callback) {
 								
 								var loginTimeout = 60000;
 								
-								// Detect reCAPTCHA
-								if (config.recaptchaDetection) {
+								// Detect further auth windows
+								if (config.furtherAuthDetection) {
 									if (function() {
 										return page.evaluate(function() {
-											return $('.recaptcha-form__recaptcha').is(':visible');
+											return $('[data-a-target="passport-modal"]').is(':visible');
 										});
 									}) {
-										console.log("reCAPTCHA detected. Waiting 10 minutes for user input...");
+										console.log("Further authentication required. Waiting 10 minutes for user input...");
 										config.loginTimeout = 600000;
 									}
 								}
