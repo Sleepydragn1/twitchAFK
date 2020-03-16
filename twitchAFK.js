@@ -187,30 +187,35 @@ function twitchLogin(callback) {
 									$('[data-a-target=passport-login-button]').click();
 								});
 								
-								var loginTimeout = 60000;
-								
-								// Detect further auth windows
-								if (config.furtherAuthDetection) {
-									if (function() {
-										return page.evaluate(function() {
-											return $('[data-a-target="passport-modal"]').is(':visible');
-										});
-									}) {
-										console.log("Further authentication required. Waiting 10 minutes for user input...");
-										config.loginTimeout = 600000;
-									}
-								}
-								
 								// Wait for Twitch to finish logging in...
+								var finalizeLogin = function(loginTimeout = 60000) {
+									waitFor(function() {
+										return page.cookies.filter(cookie => cookie.name.includes("login")).length;
+									}, function() {
+										// Give it a little extra time, just in case the cookie isn't quite in line with the login
+										window.setTimeout(function() {
+											console.log("Logged into Twitch!");
+											callback();
+										}, 1000);
+									}, loginTimeout);
+								};
+								
 								waitFor(function() {
-									return page.cookies.filter(cookie => cookie.name.includes("login")).length;
-								}, function() {
-									// Give it a little extra time, just in case the cookie isn't quite in line with the login
-									window.setTimeout(function() {
-										console.log("Logged into Twitch!");
-										callback();
-									}, 1000);
-								}, config.loginTimeout);
+									/* 	If furtherAuthDetection is enabled, we check for the login window to remain visible
+										If not, just check for the login cookie like normal
+										I honestly can't think of an edge case where you wouldn't want it enabled, but who knows? */
+									if (config.furtherAuthDetection) {
+										return page.evaluate(function() {
+											return !$('[data-a-target="passport-modal"]').is(':visible');
+										});
+									} else {
+										return true;
+									}
+								}, finalizeLogin, 30000, function () {
+									console.log("Further authentication required. Waiting 10 minutes for user input...");
+									finalizeLogin(600000);
+								});
+								
 							}
 						}, 15000);
 					}, 5000);
@@ -471,8 +476,11 @@ function refresh() {
 	}
 }
 
-// Stolen from https://github.com/ariya/phantomjs/blob/master/examples/waitfor.js
-function waitFor(testFx, onReady, timeOutMillis) {
+// Stolen (and then modified) from https://github.com/ariya/phantomjs/blob/master/examples/waitfor.js
+function waitFor(testFx, onReady, timeOutMillis, onTimeout = function() {
+	console.log("Critical timeout, twitchAFK is exiting.");
+	phantom.exit(1);
+}) {
     var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 44445, //< Default Max Timout is 3s
         start = new Date().getTime(),
         condition = false,
@@ -483,8 +491,8 @@ function waitFor(testFx, onReady, timeOutMillis) {
             } else {
                 if(!condition) {
                     // If condition still not fulfilled (timeout but condition is 'false')
-                    console.log("'waitFor()' timeout");
-                    phantom.exit(1);
+					clearInterval(interval);
+					onTimeout();
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
                     //console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
