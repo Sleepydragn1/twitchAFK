@@ -4,7 +4,7 @@ var refreshing = false;
 var spamming = false;
 
 // Default config, no touch pls, use twitchAFKConfig.js instead
-var defaultConfig = '/* Config */\n' +
+var defaultConfigString = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
 'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input\n\n' +
 '/* Video Quality */\n' +
@@ -52,10 +52,14 @@ var defaultConfig = '/* Config */\n' +
 'exports.username = "AzureDiamond"; // Twitch username\n' +
 'exports.password = "hunter2"; // Twitch password\n\n' +
 '/* Debug */\n' +
-'exports.printJSMessages = false; // Output in-page console messages if true\n' +
+'exports.printJSConsole = false; // Output in-page console messages if true\n' +
 'exports.printJSErrors = false; // Output in-page JavaScript errors if true\n' +
 'exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.\n' +
 'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line. Requires printJSErrors and printJSErrorsStack to be enabled.';
+
+// Get default values
+var defaultConfig = new Object();
+Function(defaultConfigString.replace(/exports./g, "defaultConfig."))(); // Apparently Function runs faster than eval(), even if it doesn't look quite right...
 
 // Get config
 var config;
@@ -65,10 +69,20 @@ if (fs.isReadable('twitchAFKConfig.js')) {
 	console.log("Got the config!");
 } else {
 	console.log("No configuration file found, creating a new one...");
-	fs.write('twitchAFKConfig.js', defaultConfig, 'w');
+	fs.write('twitchAFKConfig.js', defaultConfigString, 'w');
 	
 	config = require('twitchAFKConfig');
 	console.log("Got the new, default config.");
+}
+
+// Find any missing config values, add their default version to config
+var defaultConfigKeys = Object.keys(defaultConfig);
+var configKeys = Object.keys(config);
+for (var i = 0; i < defaultConfigKeys.length; i++) {
+	if (!configKeys.includes(defaultConfigKeys[i])) {
+		console.log("The config value '" + defaultConfigKeys[i] + "' is missing, using default value of '" + defaultConfig[defaultConfigKeys[i]] + "' instead!");
+		config[defaultConfigKeys[i]] = defaultConfig[defaultConfigKeys[i]];
+	}
 }
 
 var channel = config.channel;
