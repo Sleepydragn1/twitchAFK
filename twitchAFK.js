@@ -262,11 +262,11 @@ function openStream() {
 			// Inject jQuery for maximum crutch
 			if (page.injectJs('jquery-3.3.1.min.js')) {
 				if (firstOpen) {
-					// Give the mature link a little time to load...
+					// Give the mature warning a little time to load...
 					window.setTimeout(function() {
 						if (page.evaluate(function() {
-							if ($('#mature-link').is(':visible')) {
-								$('#mature-link').click();
+							if ($('[data-a-target="player-overlay-mature-accept"]').is(':visible')) {
+								$('[data-a-target="player-overlay-mature-accept"]').click();
 							}
 							return true;
 						})) {
