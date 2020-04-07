@@ -69,6 +69,8 @@ var defaultConfigString = '/* Config */\n' +
 'exports.pointTracker = false; // Keeps track of channel points and outputs to the console when they increase. true for enabled, false for disabled.\n' +
 'exports.pointTrackerRate = 5; // The rate at which channel points are checked and messages are sent out, in minutes\n\n' +
 '/* Debug */\n' +
+'exports.printSlimerErrors = true; // Output SlimerJS related error messages. true for enabled, false for disabled.\n' +
+'exports.printSlimerErrorsStack = false; // Output SlimerJS stack traces as well. Requires printSlimerErrors to be enabled. true for enabled, false for disabled.\n' +
 'exports.printJSConsole = false; // Output in-page console messages. true for enabled, false for disabled.\n' +
 'exports.printJSErrors = false; // Output in-page JavaScript errors. true for enabled, false for disabled.\n' +
 'exports.printJSErrorsStack = false; // Output stack traces as well. Requires printJSErrors to be enabled. true for enabled, false for disabled.\n' +
@@ -171,6 +173,21 @@ if (!config.logging) {
 
 		console.log("Something went wrong with the logging files, probably related to file permissions.");
 		console.log("Disabling logging...");
+	}
+}
+
+// Handle and format top-level errors
+// Called "script errors" by SlimerJS, but I'm calling them "SlimerJS errors" which I think is more understandable to users
+phantom.onError = function(msg, stack) {
+	if (config.printSlimerErrors) {
+		console.log("[SlimerJS Error] " + msg);
+		
+		if (config.printSlimerErrorsStack && stack && stack.length) {
+			stack.forEach(function(s) {
+				// Modified from https://docs.slimerjs.org/current/api/phantom.html#onerror
+				console.log("[SlimerJS Error] -> " + (s.file || s.sourceURL) + ": " + s.line + (s.function ? " (in function " + s.function + ")" : ""));
+			});
+		}
 	}
 }
 

@@ -59,6 +59,8 @@ exports.pointTracker = false; // Keeps track of channel points and outputs to th
 exports.pointTrackerRate = 5; // The rate at which channel points are checked and messages are sent out, in minutes
 
 /* Debug */
+exports.printSlimerErrors = true; // Output SlimerJS related error messages. true for enabled, false for disabled.
+exports.printSlimerErrorsStack = false; // Output SlimerJS stack traces as well. Requires printSlimerErrors to be enabled. true for enabled, false for disabled.
 exports.printJSConsole = false; // Output in-page console messages. true for enabled, false for disabled.
 exports.printJSErrors = false; // Output in-page JavaScript errors. true for enabled, false for disabled.
 exports.printJSErrorsStack = false; // Output stack traces as well. Requires printJSErrors to be enabled. true for enabled, false for disabled.
