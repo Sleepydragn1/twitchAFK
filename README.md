@@ -12,19 +12,20 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 4. When installing, choose "Custom" and install to a non-default directory to avoid conflicts with the main release of Firefox. Uncheck "Install Maintenance Service".
 5. Open Firefox 59.0.3, navigate to Options > General > Firefox Updates, and set it to "Never check for updates (not recommended)".
 
-**A warning:** Never use Help > About Firefox. Mozilla takes this as a cue to ignore your user settings and shove the latest update down your throat. Not sure why, but it fills me with spite nevertheless.
+**A warning:** Never use Help > About Firefox. Mozilla takes this as a cue to ignore your user settings and shove the latest update down your throat.
 
 6. [Configure SlimerJS's variables to point to your new Firefox installation.](https://docs.slimerjs.org/current/installation.html#configuring-slimerjs)
 7. Configure the twitchAFKConfig.js file and ensure you've set your Twitch username and password correctly.
 
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
 
-8. **\[Optional]** Run *slimerjs -CreateProfile twitchAFK* if you're planning on using profile support.
+8. Run *slimerjs -CreateProfile [profile name]* to create a profile for the script to use. Ex: *slimerjs -CreateProfile twitchAFK*
+9. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. If this is the case (assuming you have furtherAuthDetection enabled), the console will note: "Further authentication required. Waiting 10 minutes for user input...)", and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input.
 
 ## Command-line Syntax
 The command to use the script is:
 
-*slimerjs twitchAFK.js \[Twitch channel]*
+*slimerjs -P [profile name] twitchAFK.js \[Twitch channel]*
 
 The Twitch channel argument is *optional*, and if not specified, the script will use the channel option from the configuration file.
 
@@ -32,31 +33,33 @@ You may or may not need to specify SlimerJS's location depending on how you've i
 
 For example:
 
-*slimerjs twitchAFK.js rainbow6*
+*slimerjs -P twitchAFK twitchAFK.js rainbow6*
 
 or
 
-*slimerjs twitchAFK.js*
+*slimerjs -P twitchAFK twitchAFK.js*
 
 or
 
-*"C:\Tools\SlimerJS\slimerjs.bat" twitchAFK.js rainbow6*
+*"C:\Tools\SlimerJS\slimerjs.bat" -P twitchAFK twitchAFK.js rainbow6*
 
 ## Profiles
 
-Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and can potentially avoid problems with Twitch's captchas.
+Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and will help to avoid problems with Twitch's CAPTCHAs, two factor authentication, or other impediments to logging in.
 
-Run *slimerjs -CreateProfile twitchAFK* to create a profile, and then append *-P twitchAFK* to any slimerJS command to use that profile.
+Run *slimerjs -CreateProfile [profile name]* to create a profile, and then append *-P [profile name]* to any slimerJS command to use that profile.
 
 For example:
 
 *slimerjs -P twitchAFK twitchAFK.js rainbow6*
 
+Also, using multiple profiles can be used to switch between multiple Twitch accounts.
+
 ## You're ready to go!
 
 Now you just need to set it up with a program for automatic scheduling.
 
-For those of you on Windows, this'll probably end up being Task Scheduler, and I've included a PowerShell script within the Windows directory to stop the script so you can schedule an end point for the it.
+For those of you on Windows, this'll probably end up being Task Scheduler, and I've included a PowerShell script within the Windows directory to stop the script so you can schedule an end point for it.
 
 ## Q&A
 
@@ -74,9 +77,7 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 
 **Q:** I'm running into Captchas, please help?
 
-**A:** Stop running the script so often, you degenerate, or start using the profile system.
-
-Otherwise, you can uncomment the "Debug function for logging in manually" section in twitchAFK.js and comment out the next line to give you 100 seconds to log in manually and solve the Captcha yourself. I won't make this an official configuration option because you really shouldn't be running into this in the first place.
+**A:** Start using the profile system, you degenerate.
 
 ---
 
