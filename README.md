@@ -20,7 +20,7 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
 
 8. Run *slimerjs -CreateProfile [profile name]* to create a profile for the script to use. Ex: *slimerjs -CreateProfile twitchAFK*
-9. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. If this is the case (assuming you have furtherAuthDetection enabled), the console will note: "Further authentication required. Waiting 10 minutes for user input...)", and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input.
+9. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. If this is the case (assuming you have furtherAuthDetection enabled), the console will note "further authentication required," and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input.
 
 ## Command-line Syntax
 The command to use the script is:
