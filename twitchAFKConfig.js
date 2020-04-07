@@ -1,6 +1,7 @@
 /* Config */
 exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT
 exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input
+exports.loggingEnabled = true; // If true, exports console output to log files stored in the logs subfolder
 
 /* Video Quality */
 exports.maxQuality = "MIN"; // Maximum video quality setting to use

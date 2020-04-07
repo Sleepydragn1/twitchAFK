@@ -3,10 +3,22 @@ var firstOpen = true;
 var refreshing = false;
 var spamming = false;
 
+// Archive console.log calls for later logging, if enabled
+// We can't do this later since we need to get the config first to determine if we even want to log these to a file
+var baseLog = console.log;
+var archivedMsgs = "";
+console.log = function(msg) {
+	var logMsg = logFormat(msg);
+	
+	baseLog(logMsg);
+	archivedMsgs += logMsg + "\n";
+}
+
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfigString = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
-'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input\n\n' +
+'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input\n' +
+'exports.loggingEnabled = true; // If true, exports console output to log files stored in the logs subfolder\n\n' +
 '/* Video Quality */\n' +
 'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
 '// Possible Values:\n' +
@@ -91,6 +103,72 @@ var channel = config.channel;
 var system = require('system');
 if (system.args[1]) channel = system.args[1];
 
+// Set up logging
+if (!config.loggingEnabled) {
+	// Go back to the default console.log behavior
+	console.log = function(msg) {
+		baseLog(logFormat(msg));
+	};
+} else {
+	try {
+		if (!fs.isDirectory('logs')) {
+			fs.makeDirectory('logs');
+		}
+		
+		// Setup filename for log file
+		var startDate = new Date();
+		// Ex. sleepydragn1_2020.04.05_07.46
+		// What a mess...
+		var logFilename = channel + "_" + startDate.getFullYear() + "." + (startDate.getMonth() + 1).toString().padStart(2, "0") + "." + startDate.getDate().toString().padStart(2, "0") + "_" + startDate.getHours().toString().padStart(2, "0") + "." + startDate.getMinutes().toString().padStart(2, "0");
+		
+		// Backup behavior for edge case where log filename already exists
+		if (fs.exists('logs/' + logFilename + ".txt")) {
+			logFilename += "-" + 1;
+			if (fs.exists('logs/' + logFilename + ".txt")) {
+				// Keep adding +1 to the number at the end of the filename until it works
+				var i = 2;
+				while (fs.exists('logs/' + logFilename + ".txt")) {
+					logFilename = logFilename.slice(0, -1 * (i.toString().length + 1));
+					logFilename += "-" + i;
+					i++;
+				}
+			}
+		}
+		
+		// Open the file as a stream for later writing
+		// SlimerJS lacks documentation for this feature, so go off of PhantomJS' docs for this
+		// ... but even their documentation isn't really complete.
+		var logFile = fs.open('logs/' + logFilename + ".txt", 'w');
+		
+		// Log those messages we archived at the beginning
+		logFile.write(archivedMsgs);
+		logFile.flush();
+		
+		console.log = function(msg) {
+			var logMsg = logFormat(msg);
+			baseLog(logMsg);
+			try {
+				logFile.writeLine(logMsg);
+				logFile.flush();
+			} catch (e) {
+				console.log = function(msg) {
+					baseLog(logFormat(msg));
+				};
+				
+				console.log("Something went wrong with the logging files, probably related to file permissions.");
+				console.log("Disabling logging...");
+			}
+		}
+	} catch (e) {
+		console.log = function(msg) {
+			baseLog(logFormat(msg));
+		};
+
+		console.log("Something went wrong with the logging files, probably related to file permissions.");
+		console.log("Disabling logging...");
+	}
+}
+
 // Convert channel name into proper Twitch URL
 var streamURL = "https://twitch.tv/" + channel;
 
@@ -108,16 +186,17 @@ page.viewportSize = {
 // Handle in-page console messages
 if (config.printJSConsole) {
 	page.onConsoleMessage = function(msg) {
-		system.stderr.writeLine('Console: ' + msg);
+		//system.stderr.writeLine('Console: ' + msg);
+		console.log('[In-page Console] ' + msg);
 	};
 }
 
 // Handle in-page JavaScript errors
 if (config.printJSErrors) {
 	page.onError = function(msg, stack) {
-		var log = "In-page JavaScript error occured:\n" + msg;
+		var errorMsg = "In-page JavaScript error occured:\n" + msg;
 		if (config.printJSErrorsStack && stack.length) {
-			log += "\n	Stack:";
+			errorMsg += "\n	Stack:";
 
 			var stackPrint = function(s) {
 				// Shamelessly stolen from: http://phantomjs.org/api/webpage/handler/on-error.html
@@ -138,9 +217,9 @@ if (config.printJSErrors) {
 					}
 					stackMsgTabbed += "\n		" + stackMsg.slice(80 * (lines - 1));
 
-					log += stackMsgTabbed;
+					errorMsg += stackMsgTabbed;
 				} else {
-					log += "\n		" + stackMsg;
+					errorMsg += "\n		" + stackMsg;
 				}
 			}
 
@@ -154,7 +233,7 @@ if (config.printJSErrors) {
 				});
 			}
 		}
-		console.log(log);
+		console.log(errorMsg);
 	};
 }
 
@@ -537,4 +616,10 @@ function screenshot() {
 
 function randomRate(min, max) {
     return Math.floor((min + ((max - min) * Math.random())) * 60000);
+}
+
+function logFormat(msg) {
+	var curDate = new Date();
+	// Ex: [Apr 05 2020 7:29:46 PM] Got the config!
+	return "[" + curDate.toDateString().slice(4) + " " + curDate.toLocaleTimeString() + "] " + msg;
 }
