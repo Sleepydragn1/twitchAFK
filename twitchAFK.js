@@ -2,6 +2,7 @@
 var firstOpen = true;
 var refreshing = false;
 var spamming = false;
+var channelPoints = 0;
 
 // Archive console.log calls for later logging, if enabled
 // We can't do this later since we need to get the config first to determine if we even want to log these to a file
@@ -17,8 +18,8 @@ console.log = function(msg) {
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfigString = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
-'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input\n' +
-'exports.loggingEnabled = true; // If true, exports console output to log files stored in the logs subfolder\n\n' +
+'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled. \n' +
+'exports.logging = true; // Exports console output to log files stored in the logs subfolder. true for enabled, false for disabled.\n\n' +
 '/* Video Quality */\n' +
 'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
 '// Possible Values:\n' +
@@ -63,11 +64,15 @@ var defaultConfigString = '/* Config */\n' +
 '/* Credentials */\n' +
 'exports.username = "AzureDiamond"; // Twitch username\n' +
 'exports.password = "hunter2"; // Twitch password\n\n' +
+'/* Channel Points */\n' +
+'exports.claimBonusPoints = true; // Claims bonus channel points when they pop up. true for enabled, false for disabled.\n' +
+'exports.pointTracker = false; // Keeps track of channel points and outputs to the console when they increase. true for enabled, false for disabled.\n' +
+'exports.pointTrackerRate = 5; // The rate at which channel points are checked and messages are sent out, in minutes\n\n' +
 '/* Debug */\n' +
-'exports.printJSConsole = false; // Output in-page console messages if true\n' +
-'exports.printJSErrors = false; // Output in-page JavaScript errors if true\n' +
-'exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.\n' +
-'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line. Requires printJSErrors and printJSErrorsStack to be enabled.';
+'exports.printJSConsole = false; // Output in-page console messages. true for enabled, false for disabled.\n' +
+'exports.printJSErrors = false; // Output in-page JavaScript errors. true for enabled, false for disabled.\n' +
+'exports.printJSErrorsStack = false; // Output stack traces as well. Requires printJSErrors to be enabled. true for enabled, false for disabled.\n' +
+'exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only prints the last line. Requires printJSErrors and printJSErrorsStack to be enabled.';
 
 // Get default values
 var defaultConfig = new Object();
@@ -104,7 +109,7 @@ var system = require('system');
 if (system.args[1]) channel = system.args[1];
 
 // Set up logging
-if (!config.loggingEnabled) {
+if (!config.logging) {
 	// Go back to the default console.log behavior
 	console.log = function(msg) {
 		baseLog(logFormat(msg));
@@ -186,7 +191,6 @@ page.viewportSize = {
 // Handle in-page console messages
 if (config.printJSConsole) {
 	page.onConsoleMessage = function(msg) {
-		//system.stderr.writeLine('Console: ' + msg);
 		console.log('[In-page Console] ' + msg);
 	};
 }
@@ -441,6 +445,13 @@ function openStream() {
 
 								pausePlay();
 								if (config.chatSpamEnabled) chatSpam();
+								// Check to make sure that channel points are active on the channel before enabling related features
+								if (page.evaluate(function() {
+									if ($('.community-points-summary').is(':visible')) return true;
+								}) && (config.chatSpamEnabled || config.claimBonusPoints)) {
+									if (config.claimBonusPoints) bonusPoints();
+									if (config.pointTracker) pointTracker();
+								}
 								refresh();
 							}, 15000);
 						}
@@ -573,6 +584,58 @@ function refresh() {
 		console.log("Tried to refresh during a spam, waiting 15s...");
         window.setTimeout(refresh, 15000);
 	}
+}
+
+function bonusPoints() {
+	if (!refreshing) {
+		// This is honestly a pretty bad way to select the button, as it's not very resistant to layout changes.
+		// I can't think of a better way, though, due to a lack of unique class or attribute names...
+		if (page.evaluate(function() {
+			var pointsButtons = $('.community-points-summary').find($('button'));
+			if (pointsButtons.length > 1) {
+				pointsButtons[1].click();
+				return true;
+			}
+		})) {
+			// Wait for a bit to avoid that point animation shebang
+			window.setTimeout(function() {
+				// Different layouts for point tracking enabled vs disabled 
+				// Should make logs more searchable/readable
+				if (!config.pointTracker) {
+					console.log("Bonus points claimed! Channel points are up to " + currentPoints() + " now.");
+				} else {
+					console.log("Bonus points claimed!");
+					console.log("Current channel points: " + currentPoints() + ".");
+				}
+			}, 3000);
+		}
+
+		// Set to check every 15 seconds. I think that seems reasonable?
+		window.setTimeout(bonusPoints, 15000);
+	} else {
+		window.setTimeout(bonusPoints, 15000);
+	}
+}
+
+function pointTracker() {
+	if (!refreshing) {
+		var curPoints = currentPoints();
+
+		if (curPoints > channelPoints) {
+			channelPoints = curPoints;
+			console.log("Current channel points: " + curPoints + ".");
+		}
+
+		window.setTimeout(pointTracker, config.pointTrackerRate * 60000);
+	} else {
+		window.setTimeout(pointTracker, 15000);
+	}
+}
+
+function currentPoints() {
+	return page.evaluate(function() {
+		return parseInt($('.community-points-summary').find($('.tw-animated-number')).text());
+	});
 }
 
 // Stolen (and then modified) from https://github.com/ariya/phantomjs/blob/master/examples/waitfor.js

@@ -1,7 +1,7 @@
 /* Config */
 exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT
-exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input
-exports.loggingEnabled = true; // If true, exports console output to log files stored in the logs subfolder
+exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled. 
+exports.logging = true; // Exports console output to log files stored in the logs subfolder. true for enabled, false for disabled.
 
 /* Video Quality */
 exports.maxQuality = "MIN"; // Maximum video quality setting to use
@@ -53,8 +53,13 @@ exports.chatSpams = [ // Array of randomized messages for chat spam - should be 
 exports.username = "AzureDiamond"; // Twitch username
 exports.password = "hunter2"; // Twitch password
 
+/* Channel Points */
+exports.claimBonusPoints = true; // Claims bonus channel points when they pop up. true for enabled, false for disabled.
+exports.pointTracker = false; // Keeps track of channel points and outputs to the console when they increase. true for enabled, false for disabled.
+exports.pointTrackerRate = 5; // The rate at which channel points are checked and messages are sent out, in minutes
+
 /* Debug */
-exports.printJSMessages = false; // Output in-page console messages if true
-exports.printJSErrors = false; // Output in-page JavaScript errors if true
-exports.printJSErrorsStack = false; // Output stack traces as well if true. Requires printJSErrors to be enabled.
-exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only print the last line. Requires printJSErrors and printJSErrorsStack to be enabled.
+exports.printJSConsole = false; // Output in-page console messages. true for enabled, false for disabled.
+exports.printJSErrors = false; // Output in-page JavaScript errors. true for enabled, false for disabled.
+exports.printJSErrorsStack = false; // Output stack traces as well. Requires printJSErrors to be enabled. true for enabled, false for disabled.
+exports.printJSErrorsStackVerbose = false; // If true, prints THE WHOLE STACK. If false, only prints the last line. Requires printJSErrors and printJSErrorsStack to be enabled.
