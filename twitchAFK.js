@@ -2,7 +2,7 @@
 var firstOpen = true;
 var refreshing = false;
 var spamming = false;
-var channelPoints = 0;
+var channelPoints = -1;
 
 // Archive console.log calls for later logging, if enabled
 // We can't do this later since we need to get the config first to determine if we even want to log these to a file
@@ -651,7 +651,8 @@ function pointTracker() {
 
 function currentPoints() {
 	return page.evaluate(function() {
-		return parseInt($('.community-points-summary').find($('.tw-animated-number')).text());
+		// Get text from the tooltip, remove all the non-numbers, and then parse as an int
+		return parseInt($('.community-points-summary').find($('[data-a-target="tw-tooltip-label"]')).first().text().replace(/[^0-9]/g, ''));
 	});
 }
 
