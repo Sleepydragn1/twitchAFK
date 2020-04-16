@@ -80,35 +80,125 @@ var defaultConfigString = '/* Config */\n' +
 var defaultConfig = new Object();
 Function(defaultConfigString.replace(/exports./g, "defaultConfig."))(); // Apparently Function runs faster than eval(), even if it doesn't look quite right...
 
+var configPath = "twitchAFKConfig.js";
+var configBuffer = {};
+var channel;
+
+// Process command line args
+var system = require('system');
+if (system.args.length > 1) { 
+	for (let i = 1; i < system.args.length; i++) {
+		if (system.args[i].toLowerCase() === '-u') {
+			if (system.args.length > i + 1 && system.args[i + 1]) { 
+				configBuffer["username"] = system.args[i + 1];
+				i++;
+			} else {
+				console.log("-u argument missing follow-up argument!");
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -u [username]");
+			}
+		} else if (system.args[i].toLowerCase() === '-p') {
+			if (system.args.length > i + 1 && system.args[i + 1]) { 
+				configBuffer["password"] = system.args[i + 1];
+				i++;
+			} else {
+				console.log("-p argument missing follow-up argument!");
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -p [password]");
+			}
+		} else if (system.args[i].toLowerCase() === '-c') {
+			if (system.args.length > i + 1 && system.args[i + 1]) { 
+				configPath = system.args[i + 1];
+				i++;
+			} else {
+				console.log("-c argument missing follow-up argument!"); 
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -c [config filename or path]");
+			}
+		} else if (system.args[i].toLowerCase() === '-k') {
+			if (system.args.length > i + 2 && system.args[i + 1] && system.args[i + 2]) {
+				if (defaultConfig.hasOwnProperty(system.args[i + 1])) {
+					configBuffer[system.args[i + 1]] = system.args[i + 2];
+					i+=2;
+				} else {
+					console.log("Key " + system.args[i + 1] + " doesn't exist in the config!");
+				}
+			} else {
+				console.log("-k argument missing follow-up argument!");
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -k [key] [value]");
+			}
+		} else if (i === system.args.length - 1) {
+			channel = system.args[i];
+		}
+	}
+}
+
 // Get config
 var config;
-var fs = require('fs');	
-if (fs.isReadable('twitchAFKConfig.js')) {
-	config = require('twitchAFKConfig');
-	console.log("Got the config!");
-} else {
-	console.log("No configuration file found, creating a new one...");
+var fs = require('fs');
+var loadDefaultConfig = function() {
+	console.log("No config file found, creating a new one...");
 	fs.write('twitchAFKConfig.js', defaultConfigString, 'w');
-	
+
 	config = require('twitchAFKConfig');
 	console.log("Got the new, default config.");
+}
+if (fs.isReadable(configPath)) {
+	config = require(configPath.replace(/\.[^/.]+$/, "")); // Stolen from: https://stackoverflow.com/a/4250408
+	console.log("Got the config!");
+} else if (configPath !== "twitchAFKConfig.js") {
+	console.log("Custom config file not found, looking for the default config file...");
+	if (fs.isReadable("twitchAFKConfig.js")) {
+		config = require('twitchAFKConfig');
+		console.log("Got the default config!");
+	} else loadDefaultConfig();
+
+} else loadDefaultConfig();
+
+// Parse config changes from configBuffer
+for (var key in configBuffer) {
+	switch (typeof(defaultConfig[key])) {
+		case "string":
+			config[key] = configBuffer[key];
+			break;
+		case "number":
+			let p = parseFloat(configBuffer[key]);
+			if (p) config[key] = p;
+			else console.log("Config key " + key + " requires a number. " + configBuffer[key] + " is not a valid number.");
+			break;
+		case "boolean":
+			if (configBuffer[key].toLowerCase() === "true") config[key] = true;
+			else if (configBuffer[key].toLowerCase() === "false") config[key] = false;
+			else console.log("Config key " + key + " requires true or false. " + configBuffer[key] + " is neither.");
+			break;
+		case "object":
+			try {
+				let p = JSON.parse(configBuffer[key].replace(/'/g, '"'));
+				if (typeof(p) === "string") config[key] = [p]; // For single elements without an array
+				else config[key] = p;
+			} catch (e) {
+				console.log("Config key " + key + " requires an array formatted like this: ['LUL', 'TPFufun', 'VoteYea']");
+				console.log(configBuffer[key] + " does not fit this pattern.")
+			}
+			break;
+		default:
+			console.log("Oh god, the defaultConfigString is broken. How did you do that?");
+			console.log("If you didn't change anything yourself, contact the developer.");
+			break;
+	}
 }
 
 // Find any missing config values, add their default version to config
 var defaultConfigKeys = Object.keys(defaultConfig);
 var configKeys = Object.keys(config);
-for (var i = 0; i < defaultConfigKeys.length; i++) {
+for (let i = 0; i < defaultConfigKeys.length; i++) {
 	if (!configKeys.includes(defaultConfigKeys[i])) {
 		console.log("The config value '" + defaultConfigKeys[i] + "' is missing, using default value of '" + defaultConfig[defaultConfigKeys[i]] + "' instead!");
 		config[defaultConfigKeys[i]] = defaultConfig[defaultConfigKeys[i]];
 	}
 }
 
-var channel = config.channel;
-
-// Get channel name from args if possible
-var system = require('system');
-if (system.args[1]) channel = system.args[1];
+// Set channel if it hasn't been set by args
+if (!channel) {
+	channel = config.channel;
+}
 
 // Set up logging
 if (!config.logging) {
@@ -257,12 +347,6 @@ if (config.printJSErrors) {
 		console.log(errorMsg);
 	};
 }
-
-// Debug function for logging in manually
-/*page.open("https://www.twitch.tv", function(status) { });
-window.setTimeout(function() {
-	openStream();
-}, 100000);*/
 
 twitchLogin(openStream);
 
@@ -464,7 +548,7 @@ function openStream() {
 								if (config.chatSpamEnabled) chatSpam();
 								// Check to make sure that channel points are active on the channel before enabling related features
 								if (page.evaluate(function() {
-									if ($('.community-points-summary').is(':visible')) return true;
+									return $('.community-points-summary').is(':visible')
 								}) && (config.chatSpamEnabled || config.claimBonusPoints)) {
 									if (config.claimBonusPoints) bonusPoints();
 									if (config.pointTracker) pointTracker();
