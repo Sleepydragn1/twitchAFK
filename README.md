@@ -43,6 +43,30 @@ or
 
 *"C:\Tools\SlimerJS\slimerjs.bat" -P twitchAFK twitchAFK.js rainbow6*
 
+## Command-line Arguments
+
+Note that none of these commands will permanently alter any configuration file. They're just meant to change the session that they launch.
+```
+-u [username]
+    Set the username. Note that this will do nothing if you're using a profile that is already logged in.
+    Example: slimerjs -P twitchAFK twitchAFK.js -u AzureDiamond
+-p [password]
+    Set the password. Note that this will do nothing if you're using a profile that is already logged in.
+    Example: slimerjs -P twitchAFK twitchAFK.js -p hunter2
+-c [config filename or path]
+    Use an alternate configuration file. Can utilize either a simple filename or a full path.
+    Example: slimerjs -P twitchAFK twitchAFK.js -c twitchAFKConfigAlt.js
+    Example: slimerjs -P twitchAFK twitchAFK.js -c "C:\scripts\alt\twitchAFKConfigAlt.js"
+-k [key] [value]
+    Alter a specific configuration key. 
+    Can be chained together with other -k flags to alter multiple keys.
+    Example: slimerjs -P twitchAFK twitchAFK.js -k maxQuality 1080p
+    Example: slimerjs -P twitchAFK twitchAFK.js -k width 1000 -k height 500 -k pointTracker false
+    For arrays like chatSpams, it uses a very similiar format as the config file, 
+    except using single quotes rather than double quotes.
+    Example: slimerjs -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'TPFufun', 'VoteYea']"
+```
+
 ## Profiles
 
 Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and will help to avoid problems with Twitch's CAPTCHAs, two factor authentication, or other impediments to logging in.
