@@ -19,13 +19,16 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
 
-8. Run *slimerjs -CreateProfile [profile name]* to create a profile for the script to use. Ex: *slimerjs -CreateProfile twitchAFK*
-9. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. If this is the case (assuming you have furtherAuthDetection enabled), the console will note "further authentication required," and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input.
+8. Run `slimerjs -CreateProfile [SlimerJS profile name]` to create a profile for the script to use. Ex: `slimerjs -CreateProfile twitchAFK`
+9. Fill out the `exports.username` and `exports.password` fields in twitchAFKConfig.js to reflect your Twitch account's credentials. While you're there, you'll probably want to customize the rest of the configuration file to fit your specific needs.
+10. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. **As such, you'll want to run the script without the --headless flag initially.** Ex: `slimerjs -P twitchAFK twitchAFK.js sleepydragn1`. If you do run into one of these authentication stumbling blocks (assuming you have `exports.furtherAuthDetection` enabled), the console will note "further authentication required," and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input, allowing you to run it headless if you so choose.
 
 ## Command-line Syntax
-The command to use the script is:
+The basic command to use the script is:
 
-*slimerjs -P [profile name] twitchAFK.js \[Twitch channel]*
+```
+slimerjs --headless -P [SlimerJS profile name] twitchAFK.js [Twitch channel]
+```
 
 The Twitch channel argument is *optional*, and if not specified, the script will use the channel option from the configuration file.
 
@@ -33,15 +36,21 @@ You may or may not need to specify SlimerJS's location depending on how you've i
 
 For example:
 
-*slimerjs -P twitchAFK twitchAFK.js rainbow6*
+```
+slimerjs --headless -P twitchAFK twitchAFK.js sleepydragn1
+```
 
 or
 
-*slimerjs -P twitchAFK twitchAFK.js*
+```
+slimerjs --headless -P twitchAFK twitchAFK.js
+```
 
 or
 
-*"C:\Tools\SlimerJS\slimerjs.bat" -P twitchAFK twitchAFK.js rainbow6*
+```
+"C:\Tools\SlimerJS\slimerjs.bat" --headless -P twitchAFK twitchAFK.js sleepydragn1
+```
 
 ## Command-line Arguments
 
@@ -49,35 +58,58 @@ Note that none of these commands will permanently alter any configuration file. 
 ```
 -u [username]
     Set the username. Note that this will do nothing if you're using a profile that is already logged in.
-    Example: slimerjs -P twitchAFK twitchAFK.js -u AzureDiamond
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -u AzureDiamond
 -p [password]
     Set the password. Note that this will do nothing if you're using a profile that is already logged in.
-    Example: slimerjs -P twitchAFK twitchAFK.js -p hunter2
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -p hunter2
 -c [config filename or path]
     Use an alternate configuration file. Can utilize either a simple filename or a full path.
-    Example: slimerjs -P twitchAFK twitchAFK.js -c twitchAFKConfigAlt.js
-    Example: slimerjs -P twitchAFK twitchAFK.js -c "C:\scripts\alt\twitchAFKConfigAlt.js"
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -c twitchAFKConfigAlt.js
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -c "C:\scripts\alt\twitchAFKConfigAlt.js"
 -k [key] [value]
     Alter a specific configuration key. 
     Can be chained together with other -k flags to alter multiple keys.
-    Example: slimerjs -P twitchAFK twitchAFK.js -k maxQuality 1080p
-    Example: slimerjs -P twitchAFK twitchAFK.js -k width 1000 -k height 500 -k pointTracker false
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k maxQuality 1080p
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k width 1000 -k height 500 -k pointTracker false
     For arrays like chatSpams, it uses a very similiar format as the config file, 
     except using single quotes rather than double quotes.
-    Example: slimerjs -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'TPFufun', 'VoteYea']"
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'TPFufun', 'VoteYea']"
 ```
 
 ## Profiles
 
 Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and will help to avoid problems with Twitch's CAPTCHAs, two factor authentication, or other impediments to logging in.
 
-Run *slimerjs -CreateProfile [profile name]* to create a profile, and then append *-P [profile name]* to any slimerJS command to use that profile.
+Run `slimerjs -CreateProfile [SlimerJS profile name]` to create a profile, and then append `-P [SlimerJS profile name]` to any slimerJS command to use that profile.
 
 For example:
 
-*slimerjs -P twitchAFK twitchAFK.js rainbow6*
+```
+slimerjs -CreateProfile altAccount
+slimerjs --headless -P altAccount twitchAFK.js sleepydragn1
+```
 
-Also, using multiple profiles can be used to switch between multiple Twitch accounts.
+Using multiple profiles can also be used to switch between multiple Twitch accounts! 
+
+## Headless Mode
+
+The `--headless` flag allows SlimerJS to run the script in headless mode, meaning that it won't create a window containing the browser while it's being run. 
+
+Ex:
+
+With headless mode *enabled*:
+
+```
+slimerjs --headless -P twitchAFK twitchAFK.js sleepydragn1
+```
+
+With headless mode *disabled*:
+
+```
+slimerjs -P twitchAFK twitchAFK.js sleepydragn1
+```
+
+Upon the first time setup of a profile, you'll likely need to run the script without the headless flag. Other than that, unless you're running into issues and want to visually see what's going wrong, or want to monitor the script in person, there's no real need to run it without the flag.
 
 ## You're ready to go!
 
@@ -90,12 +122,6 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 **Q:** I screwed up my configuration file. What do?
 
 **A:** You can either redownload the default one from this repo, or more easily, you can delete your existing file and the script will recreate it with default values upon launch.
-
----
-
-**Q:** Why doesn't this run headless? Why am I forced to have this damn thing up in the background?
-
-**A:** Headless stacks like PhantomJS won't properly render the stream, thus causing problems. Sorry mate.
 
 ---
 
