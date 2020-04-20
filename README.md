@@ -25,7 +25,7 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 ## Command-line Syntax
 The command to use the script is:
 
-*slimerjs -P [profile name] twitchAFK.js \[Twitch channel]*
+*`slimerjs -P [SlimerJS profile name] twitchAFK.js [Twitch channel]`*
 
 The Twitch channel argument is *optional*, and if not specified, the script will use the channel option from the configuration file.
 
@@ -33,15 +33,15 @@ You may or may not need to specify SlimerJS's location depending on how you've i
 
 For example:
 
-*slimerjs -P twitchAFK twitchAFK.js rainbow6*
+*`slimerjs -P twitchAFK twitchAFK.js rainbow6`*
 
 or
 
-*slimerjs -P twitchAFK twitchAFK.js*
+*`slimerjs -P twitchAFK twitchAFK.js`*
 
 or
 
-*"C:\Tools\SlimerJS\slimerjs.bat" -P twitchAFK twitchAFK.js rainbow6*
+*`"C:\Tools\SlimerJS\slimerjs.bat" -P twitchAFK twitchAFK.js rainbow6`*
 
 ## Command-line Arguments
 
@@ -71,11 +71,11 @@ Note that none of these commands will permanently alter any configuration file. 
 
 Using a profile for SlimerJS will allow it to store cookie and session information, meaning that it can remember your login. This allows for a slightly faster script startup, and will help to avoid problems with Twitch's CAPTCHAs, two factor authentication, or other impediments to logging in.
 
-Run *slimerjs -CreateProfile [profile name]* to create a profile, and then append *-P [profile name]* to any slimerJS command to use that profile.
+Run *`slimerjs -CreateProfile [SlimerJS profile name]`* to create a profile, and then append *-P [SlimerJS profile name]* to any slimerJS command to use that profile.
 
 For example:
 
-*slimerjs -P twitchAFK twitchAFK.js rainbow6*
+*`slimerjs -P twitchAFK twitchAFK.js rainbow6`*
 
 Also, using multiple profiles can be used to switch between multiple Twitch accounts.
 
@@ -95,13 +95,13 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 
 **Q:** Why doesn't this run headless? Why am I forced to have this damn thing up in the background?
 
-**A:** Headless stacks like PhantomJS won't properly render the stream, thus causing problems. Sorry mate.
+**A:** If you really want to try, you can use `slimerjs --headless -P <yourSlimerJSProfile> twitchAFK.js <streamYouWantToIdle>`, but it might be unstable.
 
 ---
 
 **Q:** I'm running into Captchas, please help?
 
-**A:** Start using the profile system, you degenerate.
+**A:** Start using the SlimerJS profile system, you degenerate.
 
 ---
 
