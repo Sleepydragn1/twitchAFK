@@ -95,7 +95,7 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 
 **Q:** Why doesn't this run headless? Why am I forced to have this damn thing up in the background?
 
-**A:** If you really want to try, you can use `slimerjs --headless -P <yourSlimerJSProfile> twitchAFK.js <streamYouWantToIdle>`, but it might be unstable.
+**A:** If you really want to try, you can use `slimerjs --headless -P [SlimerJS profile name] twitchAFK.js [streamYouWantToIdle]`, but it might be unstable.
 
 ---
 
