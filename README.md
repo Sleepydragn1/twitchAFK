@@ -1,4 +1,4 @@
-![Flashy banner, yo](banner.gif)
+![Flashy banner, yo](img/banner.gif)
 
 # twitchAFK
 A SlimerJS script for idling a Twitch channel.
@@ -113,9 +113,35 @@ Upon the first time setup of a profile, you'll likely need to run the script wit
 
 ## You're ready to go!
 
-Now you just need to set it up with a program for automatic scheduling.
+Now you just need to set it up with a program for automatic scheduling. I've included an example tutorial for Windows users planning on using Task Scheduler below.
 
-For those of you on Windows, this'll probably end up being Task Scheduler, and I've included a PowerShell script within the Windows directory to stop the script so you can schedule an end point for it.
+## Task Scheduler Example
+
+First, setup a .bat script with your given command. For example:
+
+```
+slimerjs --headless -P twitchAFK twitchAFK.js %1
+```
+
+In this, %1 will be used to pass on an argument, which we'll use to specify the channel we want to AFK.
+
+After that, we'll set up our task in Task Scheduler. Start by creating a task via Task Scheduler (Local) > Task Scheduler Library > Create Task...
+
+![Start by creating a task via Task Scheduler (Local) > Task Scheduler Library > Create Task...](img/taskscheduler1.png)
+
+Under the "General" tab, fill out the "Name" field, and click "Run whether user is logged on our not". This will allow the script to run in the background without popping up a cmd window.
+
+![Fill out the "Name" field, and click "Run whether user is logged on our not".](img/taskscheduler2.png)
+
+Switch to the "Triggers" tab. Click "New..." and create a trigger for the times you want the script to run. In this example, we want the script to run once on 4/20/2020 at 4:20 AM. So we'll select "One time" on the left, and fill out that date and time next to "Start". We're also going to set "Stop task if it runs longer than" to the duration we want the script to run, which will stop the script after that amount of time. In this case, 69 minutes. Note that we're not limited to the drop-down's pre-selected times — we can simply type in whatever custom amount of time we want. For example: "18 minutes" or "3 hours" or "2 days" or for a really precise amount of time, "128 minutes".
+
+![Switch to the "Triggers" tab. Click "New..." and create a trigger for the times you want the script to run.](img/taskscheduler3.png)
+
+Now, switch to the "Actions" tab. Click "New..." and set it up to run the .bat script we created. In this example, we've put that .bat file, named "twitchAFK.bat" and the actual twitchAFK.js script files in the same folder, "C:\scripts". Set the "Program/script" to the .bat file, fill out the Twitch channel name under "Add arguments (optional)" and set "Start in (optional)" to the aforementioned folder. Click "OK".
+
+![Now, switch to the "Actions" tab. Click "New..." and set it up to run the .bat script we created.](img/taskscheduler4.png)
+
+After this, we just need click "OK" one more time, and it should be set up. Hopefully this can serve as a jumping-off point for your use!
 
 ## Q&A
 
@@ -134,6 +160,14 @@ For those of you on Windows, this'll probably end up being Task Scheduler, and I
 **Q:** Is refreshing the page, pausing and resuming the stream, or spamming the chat really neccessary to get drops?
 
 **A:** No idea, since Twitch doesn't really make it clear. Regardless, I'm not taking any chances.
+
+---
+
+**Q:** I'm running into crashes or other problems. Why are you doing this to me? What did I ever do to you?
+
+**A:** Check your log files — most errors that this script reports should be fairly self-explanatory. If those logs don't list anything unusual, try enabling `exports.printJSConsole` and `exports.printJSErrors` for additional information.
+
+If you're still having an issue, or the problem in question is a genuine bug with the script, you can always use the issues board on Github to ask for help. Make sure you include specific information about your setup, the problem, and relevant logs. I'll do my best to help.
 
 ---
 
