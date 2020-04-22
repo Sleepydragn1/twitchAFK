@@ -18,7 +18,8 @@ console.log = function(msg) {
 // Default config, no touch pls, use twitchAFKConfig.js instead
 var defaultConfigString = '/* Config */\n' +
 'exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT\n' +
-'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled. \n' +
+'exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled.\n' +
+'exports.streamAudio = false; // Determines if the stream has its audio muted or not. Should have no effect on drops. true to enable audio, false to disable it.\n' + 
 'exports.logging = true; // Exports console output to log files stored in the logs subfolder. true for enabled, false for disabled.\n\n' +
 '/* Video Quality */\n' +
 'exports.maxQuality = "MIN"; // Maximum video quality setting to use\n' +
@@ -459,14 +460,26 @@ function openStream() {
 									return $('[data-a-target="player-mute-unmute-button"]').is(':visible');
 								});
 							}, function() {
-								page.evaluate(function() {
-									// Check if stream is unmuted, mute if it is
-									if ($('[data-a-target="player-mute-unmute-button"]').attr('aria-label').includes("Mute")) {
-										$('[data-a-target="player-mute-unmute-button"]').click();
-									}
-									// Switch to theatre mode
-									$('[data-a-target="player-theatre-mode-button"]').click();
-								});
+								if (!config.streamAudio) {
+									page.evaluate(function() {
+										// Check if stream is unmuted, mute if it is
+										if ($('[data-a-target="player-mute-unmute-button"]').attr('aria-label').includes("Mute")) {
+											$('[data-a-target="player-mute-unmute-button"]').click();
+										}
+										
+										// Switch to theatre mode
+										$('[data-a-target="player-theatre-mode-button"]').click();
+									});
+								} else {
+									page.evaluate(function() {
+										// Check if stream is muted, unmute if it is
+										if (!$('[data-a-target="player-mute-unmute-button"]').attr('aria-label').includes("Mute")) {
+											$('[data-a-target="player-mute-unmute-button"]').click();
+										}
+										
+										$('[data-a-target="player-theatre-mode-button"]').click();
+									});
+								}
 								
 								// Check for chat rules, accept them if they exist.
 								// Executed after quality setting, to avoid interfering with it.

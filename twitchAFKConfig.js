@@ -1,6 +1,7 @@
 /* Config */
 exports.channel = "sleepydragn1"; // Channel name to AFK at, UNLESS SPECIFIED VIA COMMAND LINE ARGUMENT
-exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled. 
+exports.furtherAuthDetection = true; // Detect reCAPTCHAs, 2FA, or other authentication methods after login and pause for user input. true for enabled, false for disabled.
+exports.streamAudio = false; // Determines if the stream has its audio muted or not. Should have no effect on drops. true to enable audio, false to disable it.
 exports.logging = true; // Exports console output to log files stored in the logs subfolder. true for enabled, false for disabled.
 
 /* Video Quality */
