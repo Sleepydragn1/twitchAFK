@@ -15,13 +15,13 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 **A warning:** Never use Help > About Firefox. Mozilla takes this as a cue to ignore your user settings and shove the latest update down your throat.
 
 6. [Configure SlimerJS's variables to point to your new Firefox installation.](https://docs.slimerjs.org/current/installation.html#configuring-slimerjs)
-7. Configure the twitchAFKConfig.js file and ensure you've set your Twitch username and password correctly.
+7. *(Optional)* Add SlimerJS' install folder to your PATH variable. If you want to use SlimerJS without specifying its location every time, this is a neccessary step. Further, all of the example commands listed below assume you've done so. [If you're unfamiliar with the process, this is a good Windows-based guide to it.](https://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/)
+8. Fill out the `exports.username` and `exports.password` fields in twitchAFKConfig.js to reflect your Twitch account's username and password. While you're there, you'll probably want to customize the rest of the configuration file to fit your specific needs.
 
 **A plea:** Please, please, *please* be contentious of other chat-goers and the streamer themselves when setting the ChatSpamRate options. Never set them below 2 minutes, and preferrably have them set higher than that. Nobody likes spam, and we're only really using it here to make it look like we're home. 
 
-8. Run `slimerjs -CreateProfile [SlimerJS profile name]` to create a profile for the script to use. Ex: `slimerjs -CreateProfile twitchAFK`
-9. Fill out the `exports.username` and `exports.password` fields in twitchAFKConfig.js to reflect your Twitch account's credentials. While you're there, you'll probably want to customize the rest of the configuration file to fit your specific needs.
-10. The first time you run the script, you may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means. **As such, you'll want to run the script without the --headless flag initially.** Ex: `slimerjs -P twitchAFK twitchAFK.js sleepydragn1`. If you do run into one of these authentication stumbling blocks (assuming you have `exports.furtherAuthDetection` enabled), the console will note "further authentication required," and the script will give you time to complete that authentication. After that, as long as you're using a profile, twitchAFK should stay logged in and require no further user input, allowing you to run it headless if you so choose.
+9. Run `slimerjs -CreateProfile [SlimerJS profile name]` to create a profile for the script to use. Ex: `slimerjs -CreateProfile twitchAFK`
+10. Run the script without the --headless flag initially (ex: `slimerjs -P twitchAFK twitchAFK.js sleepydragn1`), and verify that it's working. You may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means for this first run. If you do run into one of these authentication stumbling blocks, assuming that you have `exports.furtherAuthDetection` enabled, the console will note "further authentication required," and the script will give you time to complete that authentication. After this, as long as you're using that same profile, twitchAFK should stay logged in and require no further user input.
 
 ## Command-line Syntax
 The basic command to use the script is:
@@ -31,8 +31,6 @@ slimerjs --headless -P [SlimerJS profile name] twitchAFK.js [Twitch channel]
 ```
 
 The Twitch channel argument is *optional*, and if not specified, the script will use the channel option from the configuration file.
-
-You may or may not need to specify SlimerJS's location depending on how you've installed it. On Windows, to use it without specifying location, you'll need to add it to your PATH environmental variable.
 
 For example:
 
