@@ -87,7 +87,7 @@ slimerjs -CreateProfile altAccount
 slimerjs --headless -P altAccount twitchAFK.js sleepydragn1
 ```
 
-Using multiple profiles can also be used to switch between multiple Twitch accounts! 
+Note that due to limitations with SlimerJS, only one instance of the script can be run per profile. As such, if you're planning on running multiple instances, **each instance must have its own profile.**
 
 ## Headless Mode
 
