@@ -23,6 +23,8 @@ Its primary use is to earn Twitch drops, but it could have other uses as well.
 9. Run `slimerjs -CreateProfile [SlimerJS profile name]` to create a profile for the script to use. Ex: `slimerjs -CreateProfile twitchAFK`
 10. Run the script without the --headless flag initially (ex: `slimerjs -P twitchAFK twitchAFK.js sleepydragn1`), and verify that it's working. You may need to fill out a CAPTCHA, complete two factor authentication, or verify your account via some other means for this first run. If you do run into one of these authentication stumbling blocks, assuming that you have `exports.furtherAuthDetection` enabled, the console will note "further authentication required," and the script will give you time to complete that authentication. After this, as long as you're using that same profile, twitchAFK should stay logged in and require no further user input.
 
+**A note:** Fully headless machines (i.e. servers or Linux installs without a GUI) will need to import cookies from an existing, functional install. Read [here](#importing-cookies) for more information.
+
 ## Command-line Syntax
 The basic command to use the script is:
 
@@ -60,7 +62,7 @@ Note that none of these commands will permanently alter any configuration file. 
 -p [password]
     Set the password. Note that this will do nothing if you're using a profile that is already logged in.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -p hunter2
--c [config filename or path]
+-c [filename or path]
     Use an alternate configuration file. Can utilize either a simple filename or a full path.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -c twitchAFKConfigAlt.js
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -c "C:\scripts\alt\twitchAFKConfigAlt.js"
@@ -72,6 +74,11 @@ Note that none of these commands will permanently alter any configuration file. 
     For arrays like chatSpams, it uses a very similiar format as the config file, 
     except using single quotes rather than double quotes.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'TPFufun', 'VoteYea']"
+-i [filename or path]
+	Import a set of cookies from a file. Can utilize either a simple filename or a full path.
+	The file must be JSON formatted array of SlimerJS cookie objects. Conveniently, that's what -e spits out.
+-e [filename or path]
+	Export cookies from the current session to a file. Can utilize either a simple filename or a full path.
 ```
 
 ## Profiles
@@ -108,6 +115,19 @@ slimerjs -P twitchAFK twitchAFK.js sleepydragn1
 ```
 
 Upon the first time setup of a profile, you'll likely need to run the script without the headless flag. Other than that, unless you're running into issues and want to visually see what's going wrong, or want to monitor the script in person, there's no real need to run it without the flag.
+
+## Importing Cookies
+
+twitchAFK supports importing Twitch cookies as an alternate method to log in to Twitch.
+
+If you're planning on running twitchAFK on a fully headless machine (i.e. servers or Linux installs without a GUI), answering CAPTCHAs or filling out a two factor authentication request will be impossible, making this a neccessary process.
+
+To do so:
+1. [Setup twitchAFK normally on a non-headless machine.](#setup)
+2. Run that install with the '-e' flag. Ex: `slimerjs --headless -P twitchAFK twitchAFK.js -e cookies.json`.
+3. Run the install you wish to import cookies to with the '-i' flag. Ex: `slimerjs --headless -P twitchAFK twitchAFK.js -i cookies.json`.
+
+Valid cookie files contain JSON formatted arrays of [SlimerJS cookie objects](https://docs.slimerjs.org/current/api/cookie.html). This means you technically *could* bypass the exporting process by manually writing a cookies file based on already known cookies from a browser, but frankly it's not worth the headache.
 
 ## You're ready to go!
 

@@ -3,6 +3,8 @@ var firstOpen = true;
 var refreshing = false;
 var spamming = false;
 var channelPoints = -1;
+var importCookiesFlag = false;
+var exportCookiesFlag = false;
 
 // Archive console.log calls for later logging, if enabled
 // We can't do this later since we need to get the config first to determine if we even want to log these to a file
@@ -83,38 +85,39 @@ Function(defaultConfigString.replace(/exports./g, "defaultConfig."))(); // Appar
 
 var configPath = "twitchAFKConfig.js";
 var configBuffer = {};
-var channel;
+var importCookiesPath, exportCookiesPath, channel;
 
 // Process command line args
 var system = require('system');
 if (system.args.length > 1) { 
 	for (let i = 1; i < system.args.length; i++) {
-		if (system.args[i].toLowerCase() === '-u') {
-			if (system.args.length > i + 1 && system.args[i + 1]) { 
+		let arg = system.args[i].toLowerCase();
+		if (arg === '-u') {
+			if (system.args.length > i + 1) { 
 				configBuffer["username"] = system.args[i + 1];
 				i++;
 			} else {
 				console.log("-u argument missing follow-up argument!");
 				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -u [username]");
 			}
-		} else if (system.args[i].toLowerCase() === '-p') {
-			if (system.args.length > i + 1 && system.args[i + 1]) { 
+		} else if (arg === '-p') {
+			if (system.args.length > i + 1) { 
 				configBuffer["password"] = system.args[i + 1];
 				i++;
 			} else {
 				console.log("-p argument missing follow-up argument!");
 				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -p [password]");
 			}
-		} else if (system.args[i].toLowerCase() === '-c') {
-			if (system.args.length > i + 1 && system.args[i + 1]) { 
+		} else if (arg === '-c') {
+			if (system.args.length > i + 1) { 
 				configPath = system.args[i + 1];
 				i++;
 			} else {
 				console.log("-c argument missing follow-up argument!"); 
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -c [config filename or path]");
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -c [filename or path]");
 			}
-		} else if (system.args[i].toLowerCase() === '-k') {
-			if (system.args.length > i + 2 && system.args[i + 1] && system.args[i + 2]) {
+		} else if (arg === '-k') {
+			if (system.args.length > i + 2) {
 				if (defaultConfig.hasOwnProperty(system.args[i + 1])) {
 					configBuffer[system.args[i + 1]] = system.args[i + 2];
 					i+=2;
@@ -124,6 +127,24 @@ if (system.args.length > 1) {
 			} else {
 				console.log("-k argument missing follow-up argument!");
 				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -k [key] [value]");
+			}
+		} else if (arg === '-i') {
+			importCookiesFlag = true;
+			if (system.args.length > i + 1) { 
+				importCookiesPath = system.args[i + 1];
+				i++;
+			} else {
+				console.log("-i argument missing follow-up argument!"); 
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -i [filename or path]");
+			}
+		} else if (arg === '-e') {
+			exportCookiesFlag = true;
+			if (system.args.length > i + 1) { 
+				exportCookiesPath = system.args[i + 1];
+				i++;
+			} else {
+				console.log("-e argument missing follow-up argument!"); 
+				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -e [filename or path]");
 			}
 		} else if (i === system.args.length - 1) {
 			channel = system.args[i];
@@ -142,7 +163,7 @@ var loadDefaultConfig = function() {
 	console.log("Got the new, default config.");
 }
 if (fs.isReadable(configPath)) {
-	config = require(configPath.replace(/\.[^/.]+$/, "")); // Stolen from: https://stackoverflow.com/a/4250408
+	config = require(configPath.replace(/\.[^/.]+$/, "")); // Strip the extension. Stolen from: https://stackoverflow.com/a/4250408
 	console.log("Got the config!");
 } else if (configPath !== "twitchAFKConfig.js") {
 	console.log("Custom config file not found, looking for the default config file...");
@@ -240,7 +261,7 @@ if (!config.logging) {
 		
 		// Log those messages we archived at the beginning
 		logFile.write(archivedMsgs);
-		logFile.flush();
+		logFile.flush(); // We need to flush to finalize each write
 		
 		console.log = function(msg) {
 			var logMsg = logFormat(msg);
@@ -355,6 +376,15 @@ function twitchLogin(callback) {
     page.open("https://www.twitch.tv", function(status) {
         if (status == "success") {
 			mutePage();
+			
+			if (importCookiesFlag) { 
+				importCookiesFlag = false;
+				importCookies(importCookiesPath);
+			}
+			if (exportCookiesFlag) {
+				exportCookiesFlag = false;
+				exportCookies(exportCookiesPath);
+			}
 			
 			// Is the user already logged in via slimer's profile system? If so, skip past the login.
 			if (page.cookies.filter(cookie => cookie.name.includes("login")).length) {
@@ -751,6 +781,75 @@ function currentPoints() {
 		// Get text from the tooltip, remove all the non-numbers, and then parse as an int
 		return parseInt($('.community-points-summary').find($('[data-a-target="tw-tooltip-label"]')).first().text().replace(/[^0-9]/g, ''));
 	});
+}
+
+function importCookies(path) {
+	console.log("Importing cookies...");
+	
+	if (fs.isReadable(path)) {
+		// Clear existing cookies
+		page.clearCookies();
+		
+		var importedCookies = JSON.parse(fs.read(path));
+		
+		// There's a far, far easier way to do this, but then we can't verify each cookie's validity, which seems dangerous.
+		if (importedCookies && importedCookies.length > 0) {
+			for (let i = 0; i < importedCookies.length; i++) {
+				// Verify that all of the attributes we need are there
+				if ('name' in importedCookies[i] && 'value' in importedCookies[i] && 'domain' in importedCookies[i] && 'path' in importedCookies[i] && 
+					'httponly' in importedCookies[i] && 'secure' in importedCookies[i] && 'expires' in importedCookies[i] && 'expiry' in importedCookies[i]) {
+					if (phantom.addCookie(importedCookies[i])) {
+						console.log("Imported cookie '" + importedCookies[i].name + "'.");
+					} else {
+						console.log("Failed to add cookie '" + importedCookies[i].name +"'");
+					}
+				} else if (importedCookies[i].name) {
+					console.log("Cookie '" + importedCookies[i].name + "' appears to be malformed. Skipping it...");
+				} else {
+					console.log("A cookie appears to be malformed. Skipping it...");
+				}
+			}
+			console.log("Finished importing cookies.");
+		} else {
+			console.log("Cookie file appears to be malformed. Aborting import.");
+		}
+	} else {
+		console.log("Path/file '" + path + "' cannot be read from. Aborting import.");
+	}
+	
+	// Reload the page
+	page.reload();
+}
+
+function exportCookies(path) {
+	var cookies = page.cookies;
+	
+	if (cookies && cookies.length > 0) {
+		// "When you set a cookie, expiry should be in milliseconds since the epoch (1970-01-01), but when you read a cookie, its value is in seconds since the epoch!"
+		// https://docs.slimerjs.org/current/api/cookie.html
+		// slimer pls
+		for (let i = 0; i < cookies.length; i++) {
+			if (cookies[i].expiry) cookies[i].expiry *= 1000; // If statement covers case where expiry is null
+		}
+		
+		// SlimerJS' 'expires' generation seems to be completely busted, since it spits out dates from the 1970s.
+		// Even worse, according to the code, it gives priority to expires instead of expiry, which is the accurate one in this case.
+		// So, we need to generate expires from expiry. We actually can use milliseconds here, even though the documentation tells us we can't,
+		// but it feels like it's "more correct" to use a date string.
+		for (let i = 0; i < cookies.length; i++) {
+			if (cookies[i].expiry) cookies[i].expires = new Date(cookies[i].expiry).toString();
+		}
+
+		// fs.isWritable() only returns true if the file exists, thus we can't use it as a check like we can fs.isReadable()
+		try {
+			fs.write(path, JSON.stringify(cookies), 'w');
+			console.log("Cookies successfully exported.");
+		} catch (e) {
+			console.log("Path/file '" + path + "' can't be written to - it may be invalid. Aborting export of cookies.");
+		}
+	} else {
+		console.log("No cookies to export!");
+	}
 }
 
 // Stolen (and then modified) from https://github.com/ariya/phantomjs/blob/master/examples/waitfor.js
