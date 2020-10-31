@@ -77,16 +77,16 @@ Note that none of these commands will alter configuration files. They only modif
     except using single quotes rather than double quotes.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'VoteYea']"
 -i [filename or path]
-	Import a set of cookies from a file. Can utilize either a simple filename or a full path.
-	The file must be JSON formatted array of SlimerJS cookie objects. Conveniently, 
-	that's what -e spits out.
-	If run with a profile, that profile will preserve the imported cookies.
-	Example: slimerjs --headless -P twitchAFK twitchAFK.js -i cookies.json
+    Import a set of cookies from a file. Can utilize either a simple filename or a full path.
+    The file must be JSON formatted array of SlimerJS cookie objects. 
+    Conveniently, that's what -e spits out.
+    If run with a profile, that profile will preserve the imported cookies.
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -i cookies.json
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -i "C:\scripts\cookies.json"
 -e [filename or path]
-	Export cookies from the current session to a file. 
-	Can utilize either a simple filename or a full path.
-	Example: slimerjs --headless -P twitchAFK twitchAFK.js -e cookies.json
+    Export cookies from the current session to a file. 
+    Can utilize either a simple filename or a full path.
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -e cookies.json
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -e "C:\scripts\cookies.json"
 ```
 
