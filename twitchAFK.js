@@ -610,7 +610,7 @@ function openStream() {
 								// Check to make sure that channel points are active on the channel before enabling related features
 								if (page.evaluate(function() {
 									return $('.community-points-summary').is(':visible')
-								}) && (config.chatSpamEnabled || config.claimBonusPoints)) {
+								}) && (config.claimBonusPoints || config.pointTracker)) {
 									if (config.claimBonusPoints) bonusPoints();
 									if (config.pointTracker) pointTracker();
 								}
@@ -629,7 +629,7 @@ function openStream() {
 				}
 			}
 		} else {
-			console.log("Shit, the stream failed to load, retrying in 15s...");
+			console.log("The stream failed to load, retrying in 15s...");
             window.setTimeout(openStream, 15000);
 		}
     });
@@ -748,7 +748,7 @@ function refresh() {
 	}
 }
 
-function bonusPoints() {
+async function bonusPoints() {
 	if (!refreshing) {
 		// This is honestly a pretty bad way to select the button, as it's not very resistant to layout changes.
 		// I can't think of a better way, though, due to a lack of unique class or attribute names...
@@ -758,18 +758,17 @@ function bonusPoints() {
 				pointsButtons[1].click();
 				return true;
 			}
-		})) {
-			// Wait for a bit to avoid that point animation shebang
-			window.setTimeout(function() {
-				// Different layouts for point tracking enabled vs disabled 
-				// Should make logs more searchable/readable
-				if (!config.pointTracker) {
-					console.log("Bonus points claimed! Channel points are up to " + currentPoints() + " now.");
-				} else {
-					console.log("Bonus points claimed!");
-					console.log("Current channel points: " + currentPoints() + ".");
-				}
-			}, 3000);
+		})) {	
+			// Different layouts for point tracking enabled vs disabled 
+			// Should make logs more searchable/readable
+			var curPoints = await currentPoints();
+			if (!config.pointTracker) {
+				console.log("Bonus points claimed! Channel points are up to " + curPoints + " now.");
+			} else {
+				channelPoints = curPoints;
+				console.log("Bonus points claimed!");
+				console.log("Current channel points: " + curPoints + ".");
+			}
 		}
 
 		// Set to check every 15 seconds. I think that seems reasonable?
@@ -779,9 +778,9 @@ function bonusPoints() {
 	}
 }
 
-function pointTracker() {
+async function pointTracker() {
 	if (!refreshing) {
-		var curPoints = currentPoints();
+		curPoints = await currentPoints();
 
 		if (curPoints > channelPoints) {
 			channelPoints = curPoints;
@@ -795,10 +794,29 @@ function pointTracker() {
 }
 
 function currentPoints() {
-	return page.evaluate(function() {
-		// Get text from the tooltip, remove all the non-numbers, and then parse as an int
-		return parseInt($('.community-points-summary').find($('[data-a-target="tw-tooltip-label"]')).first().text().replace(/[^0-9]/g, ''));
-	});
+	return new Promise(resolve => {
+		// Oh boy, this got a lot more complicated at some point
+		page.evaluate(function() {
+			// Mouse over the channel points to reveal the tooltip
+			// We can't use jQuery's .mouseover() here for some reason...
+			$('.community-points-summary').find('.tw-inline-flex')[0].dispatchEvent(new MouseEvent('mouseover', {
+				view: window,
+				bubbles: true,
+				cancelable: true
+			}));
+		});
+
+		window.setTimeout(function() {
+			resolve(page.evaluate(function() {
+				// The tooltip's ID is stored in "aria-describedby", but ONLY while the tooltip is visible.
+				// It also changes over time, as well.
+				var tooltipID = $('.community-points-summary').find('button').first().attr("aria-describedby");
+				var curPoints = parseInt($('#' + tooltipID).text().replace(/[^0-9]/g, ''));
+				
+				return curPoints;
+			}));
+		}, 500);
+	})
 }
 
 function importCookies(path) {
