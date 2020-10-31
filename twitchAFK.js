@@ -91,63 +91,72 @@ var importCookiesPath, exportCookiesPath, channel;
 var system = require('system');
 if (system.args.length > 1) { 
 	for (let i = 1; i < system.args.length; i++) {
-		let arg = system.args[i].toLowerCase();
-		if (arg === '-u') {
-			if (system.args.length > i + 1) { 
-				configBuffer["username"] = system.args[i + 1];
-				i++;
-			} else {
-				console.log("-u argument missing follow-up argument!");
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -u [username]");
-			}
-		} else if (arg === '-p') {
-			if (system.args.length > i + 1) { 
-				configBuffer["password"] = system.args[i + 1];
-				i++;
-			} else {
-				console.log("-p argument missing follow-up argument!");
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -p [password]");
-			}
-		} else if (arg === '-c') {
-			if (system.args.length > i + 1) { 
-				configPath = system.args[i + 1];
-				i++;
-			} else {
-				console.log("-c argument missing follow-up argument!"); 
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -c [filename or path]");
-			}
-		} else if (arg === '-k') {
-			if (system.args.length > i + 2) {
-				if (defaultConfig.hasOwnProperty(system.args[i + 1])) {
-					configBuffer[system.args[i + 1]] = system.args[i + 2];
-					i+=2;
+		switch (system.args[i].toLowerCase()) {
+			case '-u':
+				if (system.args.length > i + 1) { 
+					configBuffer["username"] = system.args[i + 1];
+					i++;
 				} else {
-					console.log("Key " + system.args[i + 1] + " doesn't exist in the config!");
+					console.log("-u argument missing follow-up argument!");
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -u [username]");
 				}
-			} else {
-				console.log("-k argument missing follow-up argument!");
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -k [key] [value]");
-			}
-		} else if (arg === '-i') {
-			importCookiesFlag = true;
-			if (system.args.length > i + 1) { 
-				importCookiesPath = system.args[i + 1];
-				i++;
-			} else {
-				console.log("-i argument missing follow-up argument!"); 
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -i [filename or path]");
-			}
-		} else if (arg === '-e') {
-			exportCookiesFlag = true;
-			if (system.args.length > i + 1) { 
-				exportCookiesPath = system.args[i + 1];
-				i++;
-			} else {
-				console.log("-e argument missing follow-up argument!"); 
-				console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -e [filename or path]");
-			}
-		} else if (i === system.args.length - 1) {
-			channel = system.args[i];
+				break;
+			case '-p':
+				if (system.args.length > i + 1) { 
+					configBuffer["password"] = system.args[i + 1];
+					i++;
+				} else {
+					console.log("-p argument missing follow-up argument!");
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -p [password]");
+				}
+				break;
+			case '-c':
+				if (system.args.length > i + 1) { 
+					configPath = system.args[i + 1];
+					i++;
+				} else {
+					console.log("-c argument missing follow-up argument!"); 
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -c [filename or path]");
+				}
+				break;
+			case '-k':
+				if (system.args.length > i + 2) {
+					if (defaultConfig.hasOwnProperty(system.args[i + 1])) {
+						configBuffer[system.args[i + 1]] = system.args[i + 2];
+						i+=2;
+					} else {
+						console.log("Key " + system.args[i + 1] + " doesn't exist in the config!");
+					}
+				} else {
+					console.log("-k argument missing follow-up argument!");
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -k [key] [value]");
+				}
+				break;
+			case '-i':
+				importCookiesFlag = true;
+				if (system.args.length > i + 1) { 
+					importCookiesPath = system.args[i + 1];
+					i++;
+				} else {
+					console.log("-i argument missing follow-up argument!"); 
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -i [filename or path]");
+				}
+				break;
+			case '-e':
+				exportCookiesFlag = true;
+				if (system.args.length > i + 1) { 
+					exportCookiesPath = system.args[i + 1];
+					i++;
+				} else {
+					console.log("-e argument missing follow-up argument!"); 
+					console.log("Usage: slimerjs -P twitchAFK twitchAFK.js -e [filename or path]");
+				}
+				break;
+			default:
+				if (i === system.args.length - 1) {
+					channel = system.args[i];
+				}
+				break;
 		}
 	}
 }
@@ -467,6 +476,12 @@ function twitchLogin(callback) {
 
 function openStream() {
     refreshing = true;
+	
+	// We do this here and not earlier to cover the edge case where somebody may want to only log in and not navigate to a channel.
+	if (!channel) {
+		console.log("Channel name is missing or empty! Exiting twitchAFK.");
+		phantom.exit(1);
+	}
     
     page.open(streamURL, function(status) {
 		if (status == "success") {
