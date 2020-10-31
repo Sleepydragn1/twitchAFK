@@ -57,10 +57,12 @@ or
 Note that none of these commands will alter configuration files. They only modify the session that they launch.
 ```
 -u [username]
-    Set the username. Note that this will do nothing if you're using a profile that is already logged in.
+    Set the username. 
+    Note that this will do nothing if you're using a profile that is already logged in.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -u AzureDiamond
 -p [password]
-    Set the password. Note that this will do nothing if you're using a profile that is already logged in.
+    Set the password. 
+    Note that this will do nothing if you're using a profile that is already logged in.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -p hunter2
 -c [filename or path]
     Use an alternate configuration file. Can utilize either a simple filename or a full path.
@@ -70,10 +72,10 @@ Note that none of these commands will alter configuration files. They only modif
     Alter a specific configuration key. 
     Can be chained together with other -k flags to alter multiple keys.
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -k maxQuality 1080p
-    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k width 1000 -k height 500 -k pointTracker false
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k width 1000 -k pointTracker false
     For arrays like chatSpams, it uses a very similiar format as the config file, 
     except using single quotes rather than double quotes.
-    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'TPFufun', 'VoteYea']"
+    Example: slimerjs --headless -P twitchAFK twitchAFK.js -k chatSpams "['LUL', 'VoteYea']"
 -i [filename or path]
 	Import a set of cookies from a file. Can utilize either a simple filename or a full path.
 	The file must be JSON formatted array of SlimerJS cookie objects. Conveniently, 
@@ -82,7 +84,8 @@ Note that none of these commands will alter configuration files. They only modif
 	Example: slimerjs --headless -P twitchAFK twitchAFK.js -i cookies.json
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -i "C:\scripts\cookies.json"
 -e [filename or path]
-	Export cookies from the current session to a file. Can utilize either a simple filename or a full path.
+	Export cookies from the current session to a file. 
+	Can utilize either a simple filename or a full path.
 	Example: slimerjs --headless -P twitchAFK twitchAFK.js -e cookies.json
     Example: slimerjs --headless -P twitchAFK twitchAFK.js -e "C:\scripts\cookies.json"
 ```
