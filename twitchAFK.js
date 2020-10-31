@@ -331,7 +331,7 @@ if (config.printJSConsole) {
 	page.onConsoleMessage = function(msg) {
 		console.log('[In-page Console] ' + msg);
 	};
-}
+} // We don't need an else here, since in-page console messages aren't printed by default
 
 // Handle in-page JavaScript errors
 if (config.printJSErrors) {
@@ -377,6 +377,9 @@ if (config.printJSErrors) {
 		}
 		console.log(errorMsg);
 	};
+} else {
+	// Blank out the function so it doesn't print anything to the console
+	page.onError = function(msg, stack) {};
 }
 
 twitchLogin(openStream);
