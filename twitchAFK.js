@@ -471,7 +471,7 @@ function twitchLogin(callback) {
 				}
 			}
         } else {
-            console.log("Shit, the Twitch homepage failed to load, retrying in 15s...");
+            console.log("The Twitch homepage failed to load, retrying in 15s...");
             window.setTimeout(twitchLogin, 15000);
         }
     });
@@ -546,6 +546,8 @@ function openStream() {
 									});
 								};
 								
+								refreshing = false;
+								
 								// Check first to see if the quality options exist...
 								if (page.evaluate(function() {
 									$('[data-a-target="player-settings-button"]').click();
@@ -561,12 +563,24 @@ function openStream() {
 										// Who knows?
 										qualityButtons[0].focus();
 										
+										// Don't click the button if it's already checked.
+										// Instead, we'll click the options button to close the options menu.
+										var clickWrapper = function(butt) {
+											if (!butt.checked) {
+												butt.click();
+												return true;
+											} else {
+												$('[data-a-target="player-settings-button"]').click();
+												return false;
+											}
+										}
+										
 										if (quality.includes("MAX") || quality.includes("SOURCE")) {
-											qualityButtons[1].click();
+											return clickWrapper(qualityButtons[1]);
 										} else if (quality.includes("MIN")) {
-											qualityButtons[qualityButtons.length - 1].click();
+											return clickWrapper(qualityButtons[qualityButtons.length - 1]);
 										} else if (quality.includes("AUTO")) { 
-											qualityButtons[0].click();
+											return clickWrapper(qualityButtons[0]);
 										} else {			
 											// Get all of the available qualities, in string form
 											var qualities = [];
@@ -582,30 +596,27 @@ function openStream() {
 
 											if (qualityMatches.length > 1) {
 												// If we have more than one match (probably [quality] (Source) and [quality]), choose the second
-												qualityButtons[qualityMatches[1]].click();
+												return clickWrapper(qualityButtons[qualityMatches[1]]);
 											} else if (qualityMatches.length === 1) {
 												// If we have a single match, that's the one we want
-												qualityButtons[qualityMatches[0]].click();
+												return clickWrapper(qualityButtons[qualityMatches[0]]);
 											} else {
 												// If we have no matches, the quality isn't avaiable, and we only have LOWER qualities to choose from
 												// Let's choose the highest quality that isn't Auto
-												qualityButtons[1].click();
+												return clickWrapper(qualityButtons[1].click());
 											}
 										}
-										
-										return true;
 									}, config.maxQuality.toUpperCase())) {
-										acceptChatRules();
+										pausePlay(true); // Jank fix to make sure that changing quality doesn't freeze up the stream
 									}
 								} else {
 									console.log("No quality options found. Perhaps the stream is offline?");
-									acceptChatRules();
 								}
 								
-								refreshing = false;
+								acceptChatRules();
 								firstOpen = false;
-
 								pausePlay();
+								
 								if (config.chatSpamEnabled) chatSpam();
 								// Check to make sure that channel points are active on the channel before enabling related features
 								if (page.evaluate(function() {
@@ -635,30 +646,35 @@ function openStream() {
     });
 }
 
-function pausePlay() {   
-    if (!refreshing && !spamming) {
-        window.setTimeout(function() {
-            console.log("Pausing stream!");
-            
-            if (page.evaluate(function() {
+function pausePlay(force = false) {   
+	// Forcing allows us to do a one-off pause + play immediately
+	var rate;
+	if (!force) rate = randomRate(config.minPauseRate, config.maxPauseRate);
+	else rate = 0;
+	
+	window.setTimeout(function() {
+		if (!refreshing && !spamming) {
+			console.log("Pausing stream!");
+
+			if (page.evaluate(function() {
 				$('[data-a-target="player-play-pause-button"]').click();
 				return true;
-            })) {
+			})) {
 				window.setTimeout(function() {
-                    if (page.evaluate(function() {
+					if (page.evaluate(function() {
 						$('[data-a-target="player-play-pause-button"]').click();
 						return true;
 					})) {
 						console.log("Resuming stream.");
 					}
-                }, Math.floor(5000 + (Math.random() * 12000)));
+				}, Math.floor(5000 + (Math.random() * 12000)));
 			}
-            pausePlay();
-        }, randomRate(config.minPauseRate, config.maxPauseRate));
-    } else {
-        console.log("Tried to pause during a refresh or spam, waiting 15s...");
-        window.setTimeout(pausePlay, 15000);
-    }
+			if (!force) pausePlay();
+		} else {
+			console.log("Tried to pause during a refresh or spam, waiting 15s...");
+			window.setTimeout(pausePlay(force), 15000);
+		}
+	}, rate);
 }
 
 function chatSpam() {
